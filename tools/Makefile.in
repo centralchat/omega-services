@@ -1,0 +1,29 @@
+CC		= @CC@
+
+INSTALL		= @INSTALL@
+INSTALL_BIN	= @INSTALL_PROGRAM@
+
+prefix		= @prefix@
+exec_prefix	= @exec_prefix@
+bindir		= @bindir@
+RM			= @RM@
+
+CFLAGS		= -pipe -fPIC -g -ggdb -O @CFLAGS@ -I../include
+LDFLAGS		= @LDFLAGS@
+LIBS		= @LIBS@
+
+SCRIPTS		= omega
+
+security: 
+
+install: install-mkdir
+	@for i in $(SCRIPTS); do \
+		$(INSTALL) $$i $(DESTDIR)$(prefix); \
+	done
+
+install-mkdir:
+clean:
+header-guard:
+
+distclean: clean
+

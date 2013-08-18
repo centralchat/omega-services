@@ -1,0 +1,81 @@
+CC			= @CC@
+RM			= @RM@
+CFLAGS			= @CFLAGS@
+PICFLAGS		= @PICFLAGS@
+INSTALL			= @INSTALL@
+LDFLAGS			= @LDFLAGS@
+LIBS			= @LIBS@
+INCLUDES		= -I../include
+CPPFLAGS		= ${INCLUDES} @CPPFLAGS@
+
+INSTALL			= @INSTALL@
+INSTALL_DATA		= @INSTALL_DATA@
+
+prefix			= @prefix@
+modlib_dir		= $(prefix)/lib/
+moduledir		= @moduledir@
+
+SUBDIRS			= db protocol client core
+
+SRCS = @OSTATSMOD@
+
+MOD_BASE = mod_base.c
+
+SH_OBJS = ${SRCS:.c=.so}
+S_OBJS = ${MOD_BASE:.c=.o}
+
+default: build
+build: all
+
+libmodules.a: $(S_OBJS)
+	@echo "Building module library: $@";
+	@$(RM) -f $@
+	@$(AR) r $@ $(S_OBJS) 2>/dev/null
+
+all: libmodules.a $(SH_OBJS)
+	@for i in $(SUBDIRS); do \
+		echo "build ==> modules/$$i"; \
+		cd $$i; \
+		${MAKE} build || exit 1; cd ..; \
+	done
+
+install: install-mkdirs
+	@for file in $(SH_OBJS); do \
+		$(INSTALL_DATA) $$file $(DESTDIR)$(moduledir); \
+	done
+	@for i in $(SUBDIRS); do \
+		echo "install ==> modules/$$i"; \
+		cd $$i; \
+		${MAKE} install || exit 1; cd ..; \
+	done
+
+install-mkdirs:
+	-@if test ! -d $(DESTDIR)$(moduledir)/contrib; then \
+		mkdir $(DESTDIR)$(moduledir)/contrib; \
+	fi
+
+.SUFFIXES: .sl .so .o
+
+.c.so:
+	@echo "Building Module $@"
+	@${CC} ${PICFLAGS} ${CPPFLAGS} ${LDFLAGS} ${CFLAGS} -fPIC $< -o $@ ${LIBS} libmodules.a
+
+.c.o:
+	@echo "Compiling $<"
+	@${CC} ${CPPFLAGS} ${CFLAGS} -c $<
+
+clean:
+	@for i in $(SUBDIRS); do \
+		echo "clean ==> modules/$$i"; \
+		cd $$i; \
+		${MAKE} clean || exit 1; cd ..; \
+	done
+	@${RM} -f *.so *.sl *.o *~ *.a protocol/*.so 
+
+distclean: clean
+	@for i in $(SUBDIRS); do \
+		echo "distclean ==> modules/$$i"; \
+		cd $$i; \
+		${MAKE} distclean || exit 1; cd ..; \
+	done
+	@${RM} -f Makefile

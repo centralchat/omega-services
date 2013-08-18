@@ -1,0 +1,56 @@
+CC			= @CC@
+RM			= @RM@
+CFLAGS			= @CFLAGS@
+PICFLAGS		= @PICFLAGS@
+INSTALL			= @INSTALL@
+LDFLAGS			= @LDFLAGS@
+LIBS			= @LIBS@
+INCLUDES		= -I../../include
+CPPFLAGS		= ${INCLUDES} @CPPFLAGS@
+
+INSTALL			= @INSTALL@
+INSTALL_DATA		= @INSTALL_DATA@
+
+moduledir		= @moduledir@/protocol
+
+SRCS = \
+  bahamut.c	\
+  inspircd.c	\
+  inspircd12.c  \
+  inspircd20.c  \
+  kcircd.c	\
+  ratbox.c      \
+  ratbox3.c     \
+  hybrid.c      \
+  unreal32.c	\
+  directircd.c	\
+  charybdis.c   \
+  plexus.c
+
+SH_OBJS = ${SRCS:.c=.so}
+S_OBJS = ${SRCS:.c=.o}
+
+default: build
+build: all
+
+all: $(SH_OBJS)
+
+install:
+	-@if test ! -d $(DESTDIR)$(moduledir); then \
+		mkdir $(DESTDIR)$(moduledir); \
+	fi
+	@for file in $(SH_OBJS); do \
+		$(INSTALL_DATA) $$file $(DESTDIR)$(moduledir); \
+	done
+
+.SUFFIXES: .sl .so .o
+
+.c.so:
+	@echo "Building Protocol Module $@"
+	@${CC} ${PICFLAGS} ${CPPFLAGS} ${LDFLAGS} ${CFLAGS} $< -o $@ ${LIBS}
+
+clean:
+	@${RM} -f *.so *.sl *.o *~ *.a
+
+distclean: clean
+	@${RM} -f Makefile

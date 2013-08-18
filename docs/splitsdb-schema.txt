@@ -1,0 +1,7 @@
+CREATE TABLE splits (
+	server		TEXT,
+	uplink		TEXT,
+	splittime	INTEGER,
+	PRIMARY KEY(server)
+);
+

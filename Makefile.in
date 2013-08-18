@@ -1,0 +1,116 @@
+prefix        = @prefix@
+exec_prefix	= @exec_prefix@
+bindir		= @bindir@
+moduledir	= @moduledir@
+confdir	= @confdir@
+logdir		= @logdir@
+datarootdir	= @datarootdir@
+coredir       = @coredir@
+dbdir		= @dbdir@
+RM	       = @RM@
+
+SUBDIRS		= libopm src modules docs tools contrib
+
+all: build
+
+update: update-get build
+
+update-get:
+	-@if [  -f .svn/format ] ; then \
+	echo "Checking for updates"; \
+	svn up; \
+	fi
+
+autoconf:
+	autoconf
+	autoheader
+	${RM} -f autom4te.cache
+
+version:
+	@echo "Updating version information..."	
+	@sh ./include/version.sh
+build: version
+	-@if [ ! -f include/setup.h ] ; then \
+		echo "Hmm... doesn't look like you've run configure..."; \
+		echo "Doing so now."; \
+		sh configure; \
+	fi
+	@for i in $(SUBDIRS); do \
+		echo "build ==> $$i"; \
+		cd $$i; \
+		${MAKE} || exit; cd ..; \
+	done
+
+strict: 
+	-@if [ ! -f include/setup.h ] ; then \
+		echo "Hmm... doesn't look like you've run configure..."; \
+		echo "Doing so now."; \
+		sh configure; \
+	fi
+	@for i in $(SUBDIRS); do \
+		echo "build ==> $$i"; \
+		cd $$i; \
+		${MAKE} strict || exit; cd ..; \
+	done
+
+install-mkdirs:
+	-@if test ! -d $(DESTDIR)$(prefix); then \
+		mkdir $(DESTDIR)$(prefix); \
+	fi
+	-@if test ! -d $(DESTDIR)$(bindir); then \
+		mkdir $(DESTDIR)$(bindir); \
+	fi
+	-@if test ! -d $(DESTDIR)$(confdir); then \
+		mkdir $(DESTDIR)$(confdir); \
+	fi
+	-@if test ! -d $(DESTDIR)$(datarootdir); then \
+		mkdir $(DESTDIR)$(datarootdir); \
+	fi
+	-@if test ! -d $(DESTDIR)$(logdir); then \
+		mkdir $(DESTDIR)$(logdir); \
+	fi
+	-@if test -d $(DESTDIR)$(moduledir)-old; then \
+		rm -rf $(DESTDIR)$(moduledir)-old; \
+	fi
+	-@if test -d $(DESTDIR)$(moduledir); then \
+		mv $(DESTDIR)$(moduledir) $(DESTDIR)$(moduledir)-old; \
+	fi
+	-@if test ! -d $(DESTDIR)$(moduledir); then \
+		mkdir $(DESTDIR)$(moduledir); \
+	fi
+	-@if test ! -d $(DESTDIR)$(prefix)/var; then \
+		mkdir $(DESTDIR)$(prefix)/var; \
+	fi
+	-@if test ! -d $(DESTDIR)$(prefix)/var/tmp; then \
+		mkdir $(DESTDIR)$(prefix)/var/tmp; \
+	fi
+
+	-@if test ! -d $(DESTDIR)$(dbdir); then \
+		mkdir $(DESTDIR)$(dbdir); \
+	fi
+
+install: build install-mkdirs
+	@for i in $(SUBDIRS); do \
+		echo "install ==> $$i"; \
+		cd $$i; \
+		${MAKE} install; \
+		cd ..; \
+	done
+
+clean:
+	@echo "Cleaning up"
+	@${RM} -f *~ core
+	@for i in $(SUBDIRS); do \
+		echo "clean ==> $$i"; \
+		cd $$i; \
+		${MAKE} clean; cd ..; \
+	done
+
+distclean: clean
+	@${RM} -f *~ *.rej *.orig core* security.core security config.log config.status config.cache Makefile configure.lineno
+	@${RM} -f include/setup.h include/version.h
+	@for i in $(SUBDIRS); do \
+		echo "distclean ==> $$i"; \
+		cd $$i; \
+		${MAKE} distclean; cd ..; \
+	done

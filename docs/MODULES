@@ -1,0 +1,56 @@
+                OMEGA SECURITY SERVICES DEAMON
+	           (c) 2008-2012 OMEGA TEAM
+
+	          Module Information Document
+
+
+Current Support Modules
+
+Protocol:
+	unreal32
+	directircd
+	ratbox
+        ratbox3	
+	kc-ircd
+	inspircd
+	inspircd12
+	inspircd20
+	bahamut
+	plexus
+	nefarious
+
+
+Server Modules:
+
+	m_stats
+	m_whois
+	m_info
+	m_version
+	m_trace
+	m_omegastats
+	m_fantasy
+	
+	
+Guardian Modules:
+
+	g_core
+	g_opm
+	g_ipbl
+	g_watch
+        g_sessions
+        g_modlist
+        g_modload
+        g_modreload
+        g_access
+        g_joinflood
+	g_update
+	g_userinfo
+	g_log
+	g_die
+
+
+Contrib
+       m_splitserv
+
+
+

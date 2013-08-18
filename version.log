@@ -1,0 +1,30 @@
+# (C) 2008 Omega
+#
+# System based on versioning system from Anope1.7.x
+#
+# Please read COPYING and README for furhter details.
+#
+# $Id: version.log 2394 2012-06-30 15:56:22Z twitch $
+
+
+
+VERSION_MAJOR="0"
+VERSION_MINOR="8"
+VERSION_PATCH="0"
+VERSION_EXTRA=""
+
+MOD_API_MAJOR="0"
+MOD_API_MINOR="6"
+MOD_API_PATCH="7"
+
+
+#
+#     Alpha 2 released
+#   Version: 0.5.2 r1524 
+#     Build: Serenity 
+#
+#    Alpha 1 released
+#  Version: 0.5.0 r1380
+#    Build: SilverSky
+# 
+#EOF

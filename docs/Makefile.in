@@ -1,0 +1,19 @@
+prefix			= @prefix@
+confdir			= @confdir@
+
+CP			= @CP@
+
+INSTALL			= @INSTALL@
+INSTALL_DATA		= @INSTALL_DATA@
+
+CONFS			= example.cfg
+
+all:
+install:
+	@for i in $(CONFS); do \
+		$(INSTALL_DATA) $$i $(DESTDIR)$(confdir); \
+	done
+build:
+
+clean:
+distclean:

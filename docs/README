@@ -1,0 +1,210 @@
+$Id: README 2296 2012-01-29 10:36:44Z twitch $
+           _______  __   __  _______  _______  _______ 
+          |       ||  |_|  ||       ||       ||   _   |
+          |   _   ||       ||    ___||    ___||  |_|  |
+          |  | |  ||       ||   |___ |   | __ |       |
+          |  |_|  ||       ||    ___||   ||  ||       |
+          |       || ||_|| ||   |___ |   |_| ||   _   |
+          |_______||_|   |_||_______||_______||__| |__|
+ _______  _______  ______   __   __  ___   _______  _______  _______ 
+|       ||       ||    _ | |  | |  ||   | |       ||       ||       |
+|  _____||    ___||   | || |  |_|  ||   | |       ||    ___||  _____|
+| |_____ |   |___ |   |_|| |       ||   | |       ||   |___ | |_____ 
+|_____  ||    ___||    __ ||       ||   | |      _||    ___||_____  |
+ _____| ||   |___ |   |  || |     | |   | |     |_ |   |___  _____| |
+|_______||_______||___|  ||  |___|  |___| |_______||_______||_______|
+
+			
+		         Omega Security Services
+			 (C) 2008-2012 Omega Team
+
+		 README - Genral documentation on day to day
+		 operation of Omega Security Services.
+
+
+Index:
+	1.0 Notes
+	  1.1 Credits
+
+	2.0 Install
+	  2.1 Configure
+	  	2.1.1 Installing via Config script
+     		2.1.2 Installing via auto-conf configure script.
+        	2.1.2.* auto-conf configure script paramaters.
+      2.2 Compiling
+      2.3 Configuration file
+
+
+1.0 Notes:
+
+		If you notice any bugs while using Omega Security Services please report them to us.
+		Be sure to include the following information: Omega Version (if using SVN, include
+		the revision number), operating system you are running Omega on (FreeBSD, Debian, etc),
+		and a brief description of where you found the bug. If possible, include a back trace.
+          
+		To report bugs you can email bugs@omega-services.org or simply go to our website
+		http://www.omega-services.org and click 'Bug Tracker' on the left hand navigation bar.
+
+                Omega has been tested on the following operating systems:
+                    FreeBSD 6.3/i386
+                    FreeBSD 7.0/i386
+                    FreeBSD 7.1/i386
+                    FreeBSD 7.1/amd64
+                    FreeBSD 7.2/amd64
+                    FreeBSD 8.0/amd64
+                    FreeBSD 9.0/amd64
+                    NetBSD  4.0.1/i386
+                    Gentoo
+		    Fedora  FC10/i386
+		    Ubuntu  9.10/i386
+		    Ubuntu  10.4/i386
+	1.1 Credits:
+
+                    Developers:
+                            Jer    (jeremy@ssnet.ca)
+                            Twitch (mitch@omega-services.org)
+
+                    Quality Assurance:
+		            Amanda (amanda@zomgirc.net)
+
+                    Contributors:
+                            Rob (rob@anope.org)
+                            Achmed (achmed@randomnet.org)
+
+                    Testers:
+
+
+
+2.0 Install:
+
+	2.1 Configure
+
+	There are two ways to configure Omega. The first way is to use a configure
+	script which will allow you to configure the basic options of the set up process.
+	This is a good option for beginners. The second way uses an auto-conf configure
+	script and allows you to configure more options.
+
+		2.1.1 ./Config
+
+			To use the auto-configure script simply type ./Config
+			into your terminal and follow the instructons on your screen.
+
+
+         	2.1.2 ./configure
+
+            		Omega comes pre-packaged with an auto-conf configure script which 
+			handles the initial configuration regardless of your operating system.
+
+            		To use configure type ./configure in the main directory of the source tree.
+
+            		The following is a list of options avaliable through the configure script
+            		as well as through the MISC option in the Config script.
+
+
+            		2.1.2.1 Fine tuning of the installation directories:
+
+                		--bindir=DIR            user executables [EPREFIX/bin]
+
+                		--sbindir=DIR           system admin executables [EPREFIX/sbin]
+
+                		--libexecdir=DIR        program executables [EPREFIX/libexec]
+
+                		--sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
+
+                		--sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
+
+                		--localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+
+                		--libdir=DIR            object code libraries [EPREFIX/lib]
+
+                		--includedir=DIR        C header files [PREFIX/include]
+
+                		--oldincludedir=DIR     C header files for non-gcc [/usr/include]
+
+                		--datarootdir=DIR       read-only arch.-independent data root [PREFIX/share]
+
+                		--datadir=DIR           read-only architecture-independent data [DATAROOTDIR]
+
+                		--infodir=DIR           info documentation [DATAROOTDIR/info]
+
+                		--localedir=DIR         locale-dependent data [DATAROOTDIR/locale]
+
+                		--mandir=DIR            man documentation [DATAROOTDIR/man]
+
+                		--docdir=DIR            documentation root [DATAROOTDIR/doc/omega]
+
+                		--htmldir=DIR           html documentation [DOCDIR]
+
+                		--dvidir=DIR            dvi documentation [DOCDIR]
+
+                		--pdfdir=DIR            pdf documentation [DOCDIR]
+
+                		--psdir=DIR             ps documentation [DOCDIR]
+
+
+
+            		2.1.2.2  System types:
+
+                		--build=BUILD     configure for building on BUILD [guessed]
+
+                		--host=HOST       cross-compile to build programs to run on HOST [BUILD]
+
+
+
+            		2.1.2.3 Optional Features:
+
+                		--disable-option-checking  ignore unrecognized --enable/--with options
+
+                		--disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
+
+                		--enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+
+                		--enable-assert         Enable assert(). Choose between soft(warnings) and
+
+							hard(aborts the daemon)
+
+                		--enable-efence         Enable Electric Fence debugging
+
+                		--enable-kqueue         Force kqueue() usage.
+
+                		--enable-dmalloc        Enable Dmalloc - Malloc Debugging
+
+                		--enable-fda            Use our included memory debugger
+
+                		--enable-omegastats     Enable Omega Statistical Reporting
+
+                		--enable-openssl=DIR    Enable OpenSSL support (DIR optional).
+
+		  		        --enable-debug	        Enable core debugging mode.
+
+                		--disable-openssl       Disable OpenSSL support.
+
+
+
+
+            		2.1.2.4 Optional Packages:
+
+                		--with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
+
+                		--without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+
+                		--with-confdir=DIR      Directory to install config files.
+
+                		--with-logdir=DIR       Directory where to write logfiles.
+
+                		--with-moduledir=DIR    Directory to install modules.
+
+                		--with-coredir=DIR      Directory to install core modules.
+
+                		--with-gmoddir=DIR      Directory to install guardian modules.
+
+                		--with-dbdir=DIR        Directory to store databases
+
+                		--with-xmlrpc-c=PATH    Path to xmlrpc-c-config
+
+                		--with-sqlite3=DIR      Location to SQLite3
+
+
+
+
+

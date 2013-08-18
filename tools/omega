@@ -1,0 +1,198 @@
+#!/usr/bin/perl
+#
+#         Omega Security Services
+#              Fail Safe Exec.
+#           (C) 2008-2010 Omega Team
+#            
+#  I quite like this idea to have and executable
+#  file thats not our binary file and handle params
+#  like ./omega rehash etc in here :) this can keep
+#  what goes to our server fail safe
+#     
+#
+#          $Id: $ 
+
+
+my $DIR;
+my @return_val;
+
+sub get_script_dir() {
+	if ($0 =~ m#^\./(.*)#) {
+		`pwd` =~ /(.*)/;
+		$my_dir = "$1";
+	}
+	elsif ($0=~m#^(.*)\\#) { $my_dir = "$1"; } 
+	elsif ($0=~m#^(.*)/# ) { $my_dir = "$1"; } 
+	else  {
+		`pwd` =~ /(.*)/;
+		$my_dir = "$1";
+	}
+	return $my_dir;
+}
+
+
+###
+# Retrieve a pid and make sure its a valid one, if it is
+# return the pid, else return 0
+##
+sub get_pid() {
+	$cn = 1;
+	if (($#ARGV > 0) && ($ARGV[1] =~ m/.+\.pid/)) {	$pidfile = $ARGV[1]; }	
+	else { 	
+		@pidfiles = get_pid_files();
+		$cnt = scalar @pidfiles;
+		if ($cnt==0) {
+			print "Omega has not detect any running instances to stop\r\n";
+			exit();
+		}		
+		elsif ($cnt==1) { $pidfile = $pidfiles[0]; } 
+		else {
+			print ",---------------------------------------------\n";
+			print "| Omega has detected more then one pid file.\n";
+			while ($pidfiles[$cn]) {
+				print "| [" . $cn . "]: \033[1;32m" . $pidfiles[$cn] . "\033[0m\n";
+				$cn++;
+			} 
+			print "'---------------------------------------------\n";
+			print "Please select a file from the list: ";
+			$i = (<STDIN>);
+			chomp($i);
+			$pidfile = $pidfiles[$i];
+		}
+	}
+	open(FILEHANDLE, '<', $pidfile) or die("Could not open: $pidfile\n" . 
+							"\tIs it possible Omega is not running?\r\n");
+	@pid_data=<FILEHANDLE>; 
+	unless (kill 0 => $pid_data[0]) {
+		system("rm -rf $pidfile");		
+		print "Pid associated with this file is no longer valid.\r\n";
+		exit();				
+	}
+	return $pid_data[0];
+}
+
+sub read_pid_fromdir {
+	my $dir = shift;
+	local $cnt = scalar @return_val;
+	local @pids;
+	
+	#print "Opening Dir: $dir\n";
+	opendir(DH, $dir) or return @return_val; 
+	local @files= readdir(DH);
+	foreach $f (@files)	{	
+		#print "Parsing: $f\n";
+		if (($f ne "..") && ($f ne ".")) { 
+			if (-d $f) { 
+				@pids = read_pid_fromdir("$dir/$f");
+				#print "Backin: $dir\n";
+				$cnt = scalar @return_val;
+				next;
+			} 
+			if ($f =~ /^.+\.pid/) { 
+				#print "F: $dir/$f\n";
+				$return_val[$cnt] = "$dir/$f";
+				$cnt++;
+			}
+			next;
+			
+		} 		
+	}
+	closedir(DH); 
+	return @return_val;
+}
+
+sub get_pid_files() { return read_pid_fromdir($DIR); }
+sub show_help() {
+print STDERR << "HELP";
+			Omega Security Services
+		(C) 2009-2011 Omega Development Team
+		
+	./omega usage:
+	start [args]	 : Start Omega security services
+			   if [args] are specified, they 
+			   will be passed into the program.   
+	rehash   [args]	 : Reload configuration files
+	stop     [args]	 : Shutdown Omega
+	restart  [args]	 : Restart Omega
+	version			 : Return the current omega version.
+	check			 : Check to see if omega is running.
+
+	  Debug Commands:
+		debug	[args]   : Debug 1 (High)
+		debug2	[args]   : Debug 2 (Medium)
+		debug3	[args]   : Launch omega   
+		   
+	 Note:  If there is more then on copy running
+		it will auto detect and prompt for user 
+		input unless [pid] is specified, where [pid] 
+		is the  pid file.
+
+HELP
+}
+
+
+###
+# Run routine
+##
+
+
+$DIR = get_script_dir();
+
+SWITCH: {
+	if ($ARGV[0] =~ /^start/) {
+		$exe_cmd = '/bin/security ';
+		for ($i = 1; $i <= $#ARGV; $i++) { $exe_cmd .= $ARGV[$i];	}
+		exec($DIR . $exe_cmd);
+	}
+	elsif ($ARGV[0] =~ /^rehash/) { 
+		if ($pid = get_pid()) {
+			kill HUP => $pid;
+			print "Rehashing configuration files.\r\n";
+		}
+	}
+	elsif ($ARGV[0] =~ /^check/) {
+		if ($pid = get_pid()) {
+			print "Omega is currently running on [" . $pid . "]\n";
+		}
+	}
+	elsif ($ARGV[0] =~ /^stop/) {
+		if ($pid = get_pid()) {
+			kill TERM => $pid;
+			print "Killing process on pid: " . $pid . "\r\n";
+		} else {
+			print "No pid file found, are you sure omega is running?";	
+		}	
+	}
+	elsif ($ARGV[0] =~ /^debug$/) {
+		$exe_cmd = '/bin/security -nd1 ';
+		for ($i = 1; $i <= $#ARGV; $i++) {	$exe_cmd .= $ARGV[$i];	}
+		exec($DIR . $exe_cmd);
+	}
+	elsif ($ARGV[0] =~ /^debug2$/) {
+		$exe_cmd = '/bin/security -nd2 ';
+		for ($i = 1; $i <= $#ARGV; $i++) {	$exe_cmd .= $ARGV[$i];	}
+		exec($DIR . $exe_cmd);
+	}
+	elsif ($ARGV[0] =~ /^debug3$/) {
+		$exe_cmd = '/bin/security -nd3 ';
+		for ($i = 1; $i <= $#ARGV; $i++) {	$exe_cmd .= $ARGV[$i];	}
+		exec($DIR . $exe_cmd);
+	}
+	elsif ($ARGV[0] =~ /^version/) {
+		$exe_cmd = '/bin/security -v ';
+		exec($DIR . $exe_cmd);
+	}
+	elsif ($ARGV[0] =~ /^restart/) {
+		if ($pid = get_pid()) {
+			kill USR2 => $pid; 
+			print "Restarting services.\r\n";
+		}
+	}
+	else {
+		show_help();
+		      exit;
+	}
+	
+}
+
+exit;

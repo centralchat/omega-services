@@ -1,0 +1,69 @@
+CC		= @CC@
+
+INSTALL		= @INSTALL@
+INSTALL_BIN	= @INSTALL_PROGRAM@
+
+prefix	= @prefix@
+exec_prefix	= @exec_prefix@
+bindir		= @bindir@
+RM		= @RM@
+
+CFLAGS		= -pipe -O0 -fPIC -g -ggdb @CFLAGS@ -I../include
+LDFLAGS		= @LDFLAGS@
+LIBS		= @LIBS@
+
+default: all
+all: security
+build: all
+
+SRCS	=	     \
+  base64.c	     \
+  access.c           \
+  config.c	     \
+  configparse.c	     \
+  dlink.c	     \
+  eventhandler.c     \
+  main.c	     \
+  protocol.c	     \
+  socketengine.c     \
+  dbmanager.c     \
+  irc_string.c       \
+  parser.c           \
+  module.c           \
+  tools.c            \
+  log.c              \
+  sig.c              \
+  channel.c          \
+  match.c            \
+  cmds.c             \
+  threads.c	 \
+  links.c		\
+  metadata.c	\
+  send.c		\
+  core.c		\
+  user.c 
+
+OBJS = ${SRCS:.c=.o}
+
+security: $(OBJS)
+	@${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${OBJS} ${LIBS}
+	@echo "Linking $@"
+
+install: install-mkdir
+	@$(INSTALL_BIN) security $(DESTDIR)$(bindir)
+
+install-mkdir:
+
+clean:
+	@${RM} -f *.o security *~ security.core *.core
+
+header-guard:
+	@${RM} -f *.h
+
+distclean: clean
+	@${RM} -f Makefile
+
+.c.o:
+	@echo "Compiling $<"
+	@${CC} ${CPPFLAGS} ${CFLAGS} -c $<
+

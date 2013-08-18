@@ -1,0 +1,50 @@
+CC		= @CC@
+RM		= @RM@
+CFLAGS		= @CFLAGS@
+PICFLAGS	= @PICFLAGS@
+LDFLAGS		= @LDFLAGS@
+LIBS		= @LIBS@
+INCLUDES	= -I../../include
+CPPFLAGS	= ${INCLUDES} @CPPFLAGS@
+
+INSTALL		= @INSTALL@
+INSTALL_DATA	= @INSTALL_DATA@
+
+coredir	= @coredir@
+
+SRCS 	= m_fantasy.c \
+	m_version.c \
+	m_whois.c \
+	m_stats.c \
+	m_info.c \
+	m_ping.c \
+	m_trace.c	
+
+SH_OBJS	= ${SRCS:.c=.so}
+S_OBJS	= ${SRCS:.c=.o}
+
+default: build
+build: $(SH_OBJS)
+
+.SUFFIXES: .sl .so .o
+
+install: install-mkdirs
+	@for file in $(SH_OBJS); do \
+		$(INSTALL_DATA) $$file $(DESTDIR)$(coredir); \
+	done
+
+install-mkdirs:
+	-@if test ! -d $(DESTDIR)$(coredir); then \
+		mkdir $(DESTDIR)$(coredir); \
+	fi
+
+.c.so:
+	@echo "Building Core Module $@"
+	@${CC} ${PICFLAGS} ${CPPFLAGS} ${LDFLAGS} ${CFLAGS} $< -o $@ ${LIBS}
+
+clean:
+	@${RM} -f *.so *.sl *.o *~ *.a
+
+distclean: clean
+	@${RM} -f Makefile
+

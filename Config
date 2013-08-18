@@ -1,0 +1,633 @@
+#!/usr/bin/perl
+#
+#       Omega Security Services
+#   (c) 2008 Omega Development Team
+#
+#           Configure Utility
+#
+#   $Id: Config 2210 2012-01-08 21:25:43Z twitch $
+
+
+
+############################################
+#              Global Variables
+#
+# Altho i hate global variables this makes
+# the program easier to read and maintain
+# esp since it writes out cache file.
+############################################
+
+my $VERSION = '$Id: Config 2210 2012-01-08 21:25:43Z twitch $';
+my $CACHEFILE = "config.values";
+my $INVALID = 1;
+
+my $ASSERT;
+my $MISC;
+my $OSTATS;
+my $HOST;
+my $DIR;
+my $DMALLOC;
+my $DMODE;
+my $PTHREAD;
+my $RMAKE;
+my $CONFIG;
+my $SVN;
+my $SSL;
+my $CONFIG_DATE; 
+my $CONFIG_VERSION = "0.6";
+my $CONFIG_CHECK = 0;
+my $MSGBUFSIZE;
+
+#init our defaults
+
+sub config_def {
+  if ($CONFIG_CHECK != 0) { return; }
+    $ASSERT = "No";   $MISC = "";
+    $OSTATS = "Yes";  $HOST = `hostname`;
+    $DMODE = "No";    $DMALLOC = "No";
+    $MISC = "None";   $DIR = $ENV{'HOME'}."/omega/";
+    $PTHREAD = "Yes"; $RMAKE = "Yes";
+    $SVN = "Unknown"; $SSL = "No"; 
+	$MSGBUFSIZE = "30000";
+    $CONFIG_DATE = "Unknown";
+    $SSLDIR = "";
+    chomp($HOST);
+}
+
+sub check_cache {
+	$tmp = `ls -l * | grep -c 'config.value'`;
+	config_def ();  #init defaults 
+    if ($tmp > 0) { $CONFIG_CHECK = 1; }
+
+}
+
+sub load_cache {
+
+    my $inc = 0;
+
+    if ($CONFIG_CHECK > 0) {
+        open (CACHE,$CACHEFILE);
+
+        $inc = 0;
+
+        #check for valid config should always start with
+        #a pound which is comments in our chache file
+        $_ = (<CACHE>);
+        chomp($_);
+
+        if (($_  !~ /(#.+|\#)/) && ($inc == 0)) {
+                print "Error: Invalid cache file format... loading defaults.\n";
+                $invalid = 1;
+        }
+        else {
+                while (<CACHE>) {
+
+					chomp;
+					#print $invalid.": ".$inc." ".$_."\n";
+					if ($_  !~ /(#.+|\#)/) {
+
+						if ($inc == 0) {
+							$INVALID = 0; 
+							#check the version of the config
+							if ($_ != $CONFIG_VERSION) {
+								print "Error: Invalid cache file version... loading defaults.\n";
+								$INVALID = 1;
+							}
+						}
+						if ($inc == 1) { $CONFIG_DATE = $_; print "Cache file generated on: ".$_; }
+						if ($inc == 2) { $DIR = $_; }
+						if ($inc == 3) {
+						  if ($_ =~ /(Yes|No|yes|no|y|n)/) { $ASSERT = $_; }
+						  else { $ASSERT = "No"; }
+						}
+						if ($inc == 4) { 
+						  if ($_ =~ /(Yes|No|yes|no|y|n)/) { $OSTATS = $_; }
+						  else { $OSTATS = "Yes"; }
+						}
+						if ($inc == 5) {
+						  $HOST = $_;
+						}
+						if ($inc == 6)  { 
+						  if ($_ =~ /(Yes|No|yes|no|y|n)/) { $DMODE = $_; }
+						  else { $DMODE = "No"; }
+						}
+						if ($inc == 7) {
+						  if ($_ =~ /(Yes|No|yes|no|y|n)/) { $DMALLOC = $_; }
+						  else { $DMALLOC = "No"; } 
+						}
+						if ($inc == 8)  {
+						  if (lc($_) =~ /(yes|no|y|n)/) { $PTHREAD = $_; }
+						  else { $PTHREAD = "Yes"; } 
+						}
+						if ($inc == 9)  {
+						if ($_ !~ /--.+/) { $MISC = "None";  }
+						else { $MISC = $_; }
+						}
+						if ($inc == 10)  {
+						  if ($_ =~ /(Yes|No|yes|no|y|n)/) { $RMAKE = $_; }
+						  else { $RMAKE = "Yes"; }
+						}
+						if ($inc == 11)  {
+						  $CONFIG = $_;
+						}	
+						if ($inc == 12) { 
+							  if ($_ =~ /(Yes|No|yes|no|y|n)/) { $SVN = $_; }
+							  else { $SVN = "Yes"; }
+						}
+						if ($inc == 13)  { 
+							  if ($_ =~ /(Yes|No|yes|no|y|n)/) { $SSL = $_; }
+							  else { $SSL = "Yes"; }
+						}
+						if ($inc == 14)  { $SSLDIR = $_;  }
+						if ($inc == 15)  { $MSGBUFSIZE = $_; } 
+					$inc++; #increas the number of valid lines read.	
+					}
+				}
+				close(CHACHE);
+            }
+        print "\r\n";
+    }
+
+	#So if our config cache is invalid force defaults to be loaded
+	#because we cant guarantee the information from that point on.
+	if ($INVALID != 0) {
+          $CONFIG_CHECK = 0;
+		  config_def();
+	}
+}
+
+sub write_cache {
+	system("rm -rf ".$CACHEFILE);
+	open(FILEWRITE, "> ".$CACHEFILE);
+	#double check the values before writing them.
+    if ((!$ASSERT) || ($ASSERT eq '#')) { $ASSERT = "No"; }
+    if (!$OSTATS) { $OSTATS = "Yes"; }
+    if (!$SSL) { $SSL = "No"; $SSLDIR = $DIR; }
+    if (!$HOST) { $HOST = `hostname`; }
+    if (!$DMODE) { $DMODE = "No"; }
+	if (!$DMALLOC) { $DMALLOC = "No"; }
+	if ((!$MISC) || ($i !~ /--.+/)) { $MISC = "None";  }
+	#if ((!$DIR) || ($DIR !~ /\/.+/)) { $DIR = $ENV{'HOME'}."/omega/"; }
+    if (!$PTHREAD) { $PTHREAD = "Yes";  }
+	if (!$RMAKE) { $RMAKE = "Yes"; }
+	if (!$MSGBUFSIZE) { $MSGBUFSIZE = "30000"; }
+
+my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+
+
+if ($hour < 10) {
+    $hour = "0".$hour;
+}
+if ($min < 10) {
+    $min = "0".$min;
+}
+#some hackery to make this work properly... :/
+if (($year > 100) && ($year < 150)) {
+    $year = ($year - 100) + 2000;
+}
+$today = $mon."/".$mday."/".$year." ".$hour.":".$min;
+
+print FILEWRITE << "EOF";
+#Omega Configuration Cache file
+#  (C) 2010-2011 Omega Team
+#
+#Generated by Config
+#Config Version: $VERSION
+#File Version: $CONFIG_VERSION
+#
+#Do not edit any of the below information
+#that could result in invalid paramaters
+#being passed to the build system.
+$CONFIG_VERSION
+#Date we were generated
+$today
+#Dir value
+$DIR
+#Assert enabled?
+$ASSERT
+#OmegaStats enabled?
+$OSTATS
+#Host Value
+$HOST
+#Debug enabled?
+$DMODE
+#Dmalloc
+$DMALLOC
+#Posix Threading
+$PTHREAD
+#Misc Paramaters
+$MISC
+#Should we remake?
+$RMAKE
+#Config Params Used
+$CONFIG
+#Do we have SVN
+$SVN
+#Enable GNU SSL
+$SSL
+#SSL DIR
+$SSLDIR
+#Message Buffer Size
+$MSGBUFSIZE
+EOF
+
+	close(FILEWRITE);
+}
+
+###########################################
+#                 Quite Config
+###########################################
+
+sub quiet_config() {
+
+    check_cache();
+    load_cache();
+
+    print "Running non-interactive config.\n";
+	#check loaded values
+    if (!$ASSERT) { $ASSERT = "No"; }
+    if (!$OSTATS) { $OSTATS = "Yes"; }
+    if (!$HOST) { $HOST = `hostname`; }
+    if (!$DMODE) { $DMODE = "No"; }
+    if (!$DMALLOC) { $DMALLOC = "No"; }
+    if ((!$MISC) || ($i !~ /--.+/)) { $MISC = "None";  }
+    if (!$DIR) { $DIR = $ENV{'HOME'}."/omega/"; }
+    if (!$PTHREAD) { $PTHREAD = "Yes";  }
+    if (!$RMAKE) { $RMAKE = "Yes"; }
+
+    $CONFIG = "--prefix=".$DIR;
+
+    if (lc($DMODE) eq "yes") { $CONFIG = $CONFIG." --enable-debug"; }
+    if (lc($PTHREAD) eq "no") { $CONFIG = $CONFIG." --disable-threads"; }
+    if (lc($DMALLOC) eq "yes") { $CONFIG = $CONFIG." --enable-dmalloc"; }
+    if (lc($OSTATS) eq "yes") { $CONFIG = $CONFIG." --enable-omegastats"; }
+    if (lc($ASSERT) eq "yes") { $CONFIG = $CONFIG." --enable-assert=hard"; } else { $CONFIG = $CONFIG . " --enable-assert=soft"; }
+    if (lc($MISC) =~ /--.+/) { $CONFIG = $CONFIG." ".$MISC; }
+    $INVALID = 1;	
+    
+	print "config: using ".$CONFIG."\n";
+
+    system("./configure ".$CONFIG);
+
+    if (lc($RMAKE) eq "yes") {
+        system("make clean build install");
+    }
+    exit;
+}
+
+############################################
+#               Welcome Banner
+############################################
+
+sub banner {
+
+print " _______  __   __  _______  _______  _______ \n";
+print "|       ||  |_|  ||       ||       ||   _   |\n";
+print "|   _   ||       ||    ___||    ___||  |_|  |\n";
+print "|  | |  ||       ||   |___ |   | __ |       |\n";
+print "|  |_|  ||       ||    ___||   ||  ||       |\n";
+print "|       || ||_|| ||   |___ |   |_| ||   _   |\n";
+print "|_______||_|   |_||_______||_______||__| |__|\n";
+
+    print "    \n";
+    print "        Configuration Utility\n";
+    print "  \r\n";
+    print "Please read the README file before continuing\n";
+    print "the setup process\n";
+    if (!($CONFIG_DATE eq "Unknown")) {
+      print " \r\n";
+      print "Cache generated on: [\033[1;33m".$CONFIG_DATE."\033[0m] \r\n";
+    }
+    print "  \r\n";
+
+}
+
+############################################
+#          Main Config Routines
+############################################
+sub config {
+
+
+    banner();
+
+    #load_cache();
+	
+
+    print "Install directory\n";
+    print "[\033[1;32m".$DIR."\033[0m]: ";
+
+    #first up grab the directory information :)
+    $i = (<>);
+    chomp($i);
+
+    #check to see if it doesnt eq yes
+    #if it does use the same directory :)
+
+    if (($i) && (lc($i) !~ /^y.+/)) {
+        $DIR = $i;
+    }
+
+    #print "DIR: " . $DIR . " - i: " . $i . "\n";
+
+    $CONFIG = "--prefix=".$DIR;
+	
+    printf("\r\n");
+	
+	  print "Message buffer size\n";
+    print "[\033[1;32m".$MSGBUFSIZE."\033[0m]: ";
+
+    #first up grab the directory information :)
+    $i = (<>);
+    chomp($i);
+
+    #check to see if it doesnt eq yes
+    #if it does use the same directory :)
+
+    if (($i) && (lc($i) !~ /^y.+/)) {
+        $MSGBUFSIZE = $i;
+    }
+
+
+    printf("\r\n");
+
+    print "Hostname\n";
+    print "[\033[1;32m".$HOST."\033[0m]: ";
+
+    #grab the host information :)
+    $i = (<>);
+    chomp($i);
+
+    if (($i) && (lc($i) !~ /y.+/)) {
+        $HOST = $i;
+    }
+
+
+    print "\r\n";
+
+    #Omega Stats
+    print "Use Omega Stats (Recommended)\n";
+    print "[\033[1;32m".$OSTATS."\033[0m]: ";
+
+    $i = (<>);
+    chomp($i);
+
+    if ((lc($i) =~ /n.+/) || ((!$i) && (lc($OSTATS) eq "no")))   {
+        $CONFIG = $CONFIG." --disable-omegastats";
+		$OSTATS = "No";
+	} else {
+		$OSTATS = "Yes";
+		$CONFIG = $CONFIG." --enable-omegastats";
+	}
+
+    #more fresh lines
+    print " \r\n";
+   
+    #SSL Stats
+    print "Enable SSL (Optional)\n";
+    print "[\033[1;32m".$SSL."\033[0m]: ";
+
+    $i = (<>);
+    chomp($i);
+  
+    #--enable-openssl=DIR    Enable OpenSSL support (DIR optional).
+    #--disable-openssl       Disable OpenSSL support.
+
+    if ((lc($i) =~ /n.+/) || ((!$i) && (lc($SSL) eq "no")))   {
+	        $CONFIG = $CONFIG." --disable-openssl";
+		$SSL = "No";
+    } else {
+	    $SSL = "Yes";
+	    print " \r\n";    
+	    print " ,-----------------------------------\r\n";
+	    print " |           SSL Options          \r\n";
+	    print " | \r\n";
+	    print " | SSL Directory\n";
+	    print " | [\033[1;32m".$SSLDIR."\033[0m]: ";
+	    $i = (<>);
+	    chomp($i);
+	    if ($i) {
+		$SSLDIR = $i;
+	    }
+	    $CONFIG = $CONFIG." --enable-openssl=".$SSLDIR;
+	    print " | \r\n";
+	    print " '-----------------------------------\r\n";
+    }
+
+    #more fresh lines
+    print " \r\n";
+
+    print "Enable Debug mode (Not Recommended)\n";
+    print "[\033[1;32m".$DMODE."\033[0m]: ";
+
+    $i = (<>);
+    chomp($i);
+
+	if ((lc($i) =~ /y/) || ((!$i) && (lc($DMODE) eq "yes"))) {
+
+        $CONFIG =  $CONFIG." --enable-debug";
+		$DMODE = "Yes";
+
+        print "\r\n";
+
+        print " ,-----------------------------------\r\n";
+        print " |            Debug Options          \r\n";
+        print " | \r\n";
+
+
+        #If there are hard/soft asserts
+        print " | Use hard Assertion\n";
+        print " | [\033[1;32m".$ASSERT."\033[0m]: ";
+
+        $i = (<>);
+        chomp($i);
+
+        if ((lc($i) =~ /y/)  || ((!$i) && (lc($ASSERT) eq "yes"))) {
+               $CONFIG = $CONFIG." --enable-assert=hard";
+               $ASSERT = "Yes";
+        }
+        else {
+            $CONFIG = $CONFIG . " --enable-assert=soft";
+        }
+
+        print " | \r\n";
+
+        ############################
+        #          Dmalloc
+        ############################
+
+        print " | Enable Dmalloc\n";
+        print " | [\033[1;32m".$DMALLOC."\033[0m]: ";
+
+        $i = (<>);
+        chomp($i);
+		
+		if ((lc($i) =~ /^no/) || (lc($i) =~ /^n/)) {
+				$DMALLOC = "No";
+		}		
+        elsif ((lc($i) =~ /^yes/) || (lc($i) =~ /^y/)) {
+            $CONFIG =  $CONFIG." --enable-dmalloc";
+            $DMALLOC = "Yes";
+        } else {
+			$DMALLOC = "No";
+		}
+		
+        print " | \r\n";
+        print " '-----------------------------------\r\n";
+
+    }
+
+    printf "\r\n";
+
+    #Threading
+    print "Enable Posix Threading (Recommended)\n";
+    print "[\033[1;32m".$PTHREAD."\033[0m]: ";
+
+    $i = (<>);
+    chomp($i);
+
+    if ((lc($i) =~ /n/) || ((!$i) && (lc($PTHREAD) eq "no"))) {
+            $PTHREAD = "No";
+            $CONFIG = $CONFIG." --disable-threads";
+    } else {
+        $PTHREAD = "Yes";
+    }
+
+    printf "\r\n";
+    #MISC
+    print "Miscellaneous configure paramaters\n";
+    print "[\033[1;32m".$MISC."\033[0m]: ";
+
+    $i = (<>);
+    chomp($i);
+        if (($MISC =~ /no/) || ((!$i) || (lc($i) eq "none"))) {
+                $MISC = "None";
+        } else {
+            if ($i =~ /--.+/) {
+                $CONFIG = $i." ".$CONFIG;
+            }
+
+            if ($i !~ /--.+/) {
+                print "Invalid parameter skipping\n";
+                $MISC = "None";
+            }
+    }
+
+    print "\r\n";
+    print "Run make after? This includes installing the application (Recommended)\n";
+    #should we run make?
+    print "[\033[1;32m".$RMAKE."\033[0m]: ";
+
+    $i = (<>);
+    chomp($i);
+
+    if ((lc($i) =~ /^no/) || (lc($i) =~ /^n/)) {
+            $RMAKE = "No";
+	} elsif ((lc($i) =~ /^yes/) || (lc($i) =~ /^y/)) {
+			$RMAKE = "Yes";
+    } else {
+			$RMAKE = $RMAKE;
+	}
+    system("./configure ".$CONFIG);
+
+    if (lc($RMAKE) eq "yes") {
+        system("make clean build install");
+    }
+    return;
+
+}
+
+###########################################################
+# Non esential functions - these are just features
+# to make the Config utility more usefull
+###########################################################
+
+
+sub svnup() {
+		if (lc($SVN) eq "unknown") {	
+			print "Checking for SVN [";
+			$svn_file = `svnversion`;		
+			if (lc($svn_file) eq "exported") { 
+				print "\033[1;31mFailed\033[0m]\n";
+				$SVN = "No";		
+			} else {
+				print "\033[1;32mDone\033[0m] \n";
+				$SVN = "Yes";
+    			} 
+    			write_cache();
+		}
+		if (lc($SVN) eq "yes") { 
+			print "\033[1;32mUpdating local copy\033[0m \n";
+    			system("svn up");
+    	        	if ($INVALID != 0) {
+				config();
+			} else {
+				system("make clean build install");	
+			}	
+		} else { 
+		   print "You are currently not running an SVN copy of Omega.\n";
+		}
+		exit;
+}
+
+
+sub version() {
+    print "Version $VERSION\n";
+    exit;
+}
+
+sub usage() {
+
+print STDERR << "HELP";
+
+              Omega Security Services
+               Configuration Utility
+              (C) 2008-2011 Omega Dev Team
+
+     ./Config useage:
+     -h        : this (help) message
+     -s        : updates current svn copy
+     -v        : config tool current version
+     -q        : Run config non interactive
+     -m	       : Run "make clean build install" only	
+
+HELP
+      exit;
+}
+
+sub rmake() {
+	exec("make clean build install");
+}
+
+
+##############################################################
+#                         sub Init()
+#  This is called prior to anything else, it grabs the options
+#  and initializes things :)
+##############################################################
+
+sub Init() {
+	use Getopt::Std;
+	my $opt_string = 'shvqm';
+	getopts( "$opt_string", \%opt ) or usage();
+	svnup() if $opt{s};
+	usage() if $opt{h};
+  version() if $opt{v};
+  quiet_config() if $opt{q};
+  rmake() if $opt{m};
+
+
+}
+
+
+#############################################################
+#                  Actual Script Run Tree                   #
+#############################################################
+
+check_cache();
+load_cache();
+Init();
+config();
+write_cache();
+
+
+

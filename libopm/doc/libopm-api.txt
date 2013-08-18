@@ -1,0 +1,348 @@
+Overview of libopm API
+Erik Fears <strtok@blitzed.org>
+
+1.0 Overview
+-------------
+
+   The open proxy monitor library provides an API interface to an open proxy
+scanner. File descriptor and memory allocation are handled internally by calls
+to API functions aswell as the main IO loop (opm_cycle). Configuration, callback
+registry and protocol types are all on a scanner based level. This provides means
+to create multiple 'virtual scanners', each with it's own configuration, limits
+and protocols.
+
+
+2.0 API Data Types
+------------------
+
+OPM_T
+	This type holds information regarding a 'virtual scanner'. It is the highest
+        type created to proxy scan.
+
+OPM_REMOTE_T
+
+        This structure holds information regarding a remote host. An OPM_REMOTE_T must
+        be created for each host libopm will scan. The OPM_REMOTE_T struct will be passed
+        back on callbacks, so that the client will be able to determine the IP, port and
+        protocol in question.
+
+        The OPM_REMOTE_T structure is defined in opm.h and is as follows:
+
+        struct OPM_REMOTE_T {
+           char              *ip;
+
+           unsigned short int port;
+           unsigned short int protocol;
+           unsigned short int bytes_read;
+
+           OPM_PROTOCOL_T    *protocols;
+
+           void              *data;
+         }
+
+         The members of the OPM_REMOTE_T structure are:
+
+         ip
+            The ip of the host in human readble form.
+
+         port
+            Port used in callbacks.
+
+         protocol
+            Protocol used in callbacks.
+
+         bytes_read
+            Number of bytes read before the callback.
+
+         callbacks
+            An array of callbacks associated with this OPM_REMOTE_T. This
+            element is handled internally by the API.
+
+         data
+            An arbitrary pointer used if the client program wants to store additional
+            data in the remote struct. This can be used to avoid having to have a seperate
+            list of scans outside of the library.
+
+2.1 C API Functions
+-------------------
+
+
+OPM_T *opm_create(void)
+
+   Parameters: None
+   Return: Pointer to OPM_T
+
+   The opm_create function is used to create a new scanner object. Memory for the object
+   will be created internally and can be freed with the opm_free function.
+
+
+
+
+void opm_free(OPM_T *)
+
+   Parameters: Pointer to OPM_T object to free
+   Return: None
+
+   The opm_free struct will free a scanner object. All configuration and scans the scanner
+   is engaged in will be destroyed.
+
+
+
+
+
+OPM_REMOTE_T *opm_remote_create(char *)
+
+    Parameters: Pointer to string containing human readable IP address of remote host
+    Return: Pointer to OPM_REMOTE_T
+
+    The opm_remote_create function will allocate and setup a OPM_REMOTE_T object which
+    contains information on a remote host being scanned. OPM_REMOTE_T objects are passed
+    to the scanner to initiate scanning, and then are passed back on events.
+
+
+
+
+
+void opm_remote_free(OPM_REMOTE_T *)
+
+   Parameters: OPM_REMOTE_T object to free
+   Return: None
+
+   The opm_remote_free function frees up an OPM_REMOTE_T struct.
+
+   WARNING: Freeing an OPM_REMOTE_T struct after it has been passed to
+            a scanner (via opm_scan) would give unpredictable results.
+
+            It is only safe to free an OPM_REMOTE_T struct after the end scan
+            callback has been called.
+
+
+
+OPM_ERR_T opm_config(OPM_T *, int, void *)
+
+   Parameters: OPM_T: object to set configuration options with
+               int: configuration option to set
+               void *: Pointer to data to set the data to
+
+   Return: OPM_ERR_T or OPM_SUCCESS on success
+
+           OPM_ERR_BADVALUE: Unable to set the given value (bad formatting).
+           OPM_ERR_BADKEY: The key (configuration option) is unknown.
+
+   The opm_config function sets various options on the individual scanner
+   objects. A pointer to the data to set the option to is required. The scanner
+   will make a copy of the data and store it internally.
+
+   Configuration Types
+
+      OPTION                     TYPE            DESCRIPTION
+      --------------------------------------------------------------------------
+
+      OPM_CONFIG_FD_LIMIT        int             Max file descriptor limit
+
+      OPM_CONFIG_BIND_IP         char *          IP to bind to for outgoing scans
+
+      OPM_CONFIG_TARGET_STRING   list of char *  Target strings used to verify open proxies
+
+      OPM_CONFIG_SCAN_IP         char *          IP to command proxies to connect to
+
+      OPM_CONFIG_SCAN_PORT       int             port to command proxies to connect to
+
+      OPM_CONFIG_MAX_READ        int             Maximum amount of data (in bytes) to be read from
+                                                 the remote connection until it is dropped.
+
+      OPM_CONFIG_TIMEOUT         int             Time in seconds before a negotiation is considered
+                                                 timed out, and closed.
+
+      OPM_CONFIG_DNSBL_HOST      char *          DNSBL host
+
+
+
+      Example:
+                int fd_limit, max_read;
+                OPM_T *scanner;
+
+                scanner = opm_create();
+
+                fd_limit = 1024;
+                max_read = 4096;
+
+                opm_config(scanner, OPM_CONFIG_FD_LIMIT, &fd_limit);
+                opm_config(scanner, OPM_CONFIG_MAX_READ, &max_read);
+                opm_config(scanner, OPM_CONFIG_BIND_IP, "10.0.0.1");
+                opm_config(scanner, OPM_CONFIG_TARGET_STRING, "Match1");
+                opm_config(scanner, OPM_CONFIG_TARET_STRING, "Match2");
+
+                opm_free(scanner);
+
+
+
+OPM_ERR_T opm_addtype(OPM_T *, int, int)
+OPM_ERR_T opm_remote_addtype(OPM_REMOTE_T *, int, int)
+
+   Parameters: OPM_T scanner to add type to
+               int: type to add
+               int: port of type to add
+
+   Return: OPM_ERR_T  or OPM_SUCCESS on success
+
+           OPM_ERR_BADPROTOCOL: Bad protocol type
+
+   The opm_addtype function adds a protocol type and port to the scanner's
+   protocol list. This list determines what ports the scanner will scan on,
+   and what protocols it will check for on those ports. Each protocol/port will
+   result in 1 file descriptor used per scan.
+
+   The opm_remote_addtype functions works similarly, but adds the protocol
+   configuration to an individual remote struct instead.
+
+
+   Type                 Description
+   ---------------------------------------------------------------------
+   OPM_TYPE_HTTP        Open http proxies
+   OPM_TYPE_SOCKS4      Open socks 4 proxies
+   OPM_TYPE_SOCKS5      Open socks 5 proxies
+   OPM_TYPE_ROUTER      Routers with default passwords set (usually cisco)
+   OPM_TYPE_WINGATE     Open wingate proxy
+   OPM_TYPE_POST        Opm HTTP post proxy
+
+   Example:
+
+   		OPM_T *scanner;
+                scanner = opm_create();
+
+                opm_addtype(scanner, OPM_TYPE_HTTP, 80);
+                opm_addtype(scanner, OPM_TYPE_HTTP, 8080);
+                opm_addtype(scanner, OPM_TYPE_HTTP, 3128);
+                opm_addtype(scanner, OPM_TYPE_SOCKS4, 1080);
+                opm_addtype(scanner, OPM_TYPE_SOCKS5, 1080);
+                opm_addtype(scanner, OPM_TYPE_ROUTER, 23);
+                opm_addtype(scanner, OPM_TYPE_WINGATE, 23);
+                opm_addtype(scanner, OPM_TYPE_POST, 80);
+
+                opm_free(scanner);
+
+
+OPM_ERR_T opm_scan(OPM_T *, OPM_REMOTE_T *)
+
+   Parameters: OPM_T: Scanner to scan on
+               OPM_REMOTE_T: Object containing information on remote host to scan
+
+   Return: OPM_ERR_T or OPM_SUCCESS on success
+
+           OPM_ERR_BADADDR: The address within the OPM_REMOTE_T is not valid.
+           OPM_ERR_NOPROTOCOLS: No protocols are configured.
+
+   The opm_scan functions adds a remote host object to the scanner's scan queue
+   (or begins scanning on it if there is no queue).
+
+   Example:
+
+   		OPM_T *scanner;
+   		OPM_REMOTE_T *remote_host;
+
+		scanner = opm_create();
+		remote_host = opm_remote_create("10.0.0.1");
+
+		opm_addtype(scanner, OPM_TYPE_HTTP, 80);
+
+		opm_scan(scanner, remote_host);
+
+
+
+void opm_end(OPM_T *, OPM_REMOTE_T *)
+void opm_endscan(OPM_T *, OPM_REMOTE_T *)
+
+   Parameters: OPM_T Scanner to end scan on
+               OPM_REMOTE_T Scan to end
+
+   Return: None, OPM_CALLBACK_END will still be called
+                 when the scans end
+
+   The opm_end function ends all scans using the passed OPM_REMOTE_T. The
+   opm_endscan will only end active scans (scans in the queue are not
+   traversed). This is useful if it is known only one scan using the remote
+   struct exists, but it is also known that the scan has already active.
+   Using opm_endscan will save time by not traversing the queue list.
+
+   IMPORTANT: If the opm_end function ends any scans in the queue, the
+              OPM_CALLBACK_END callback will be called immadiately for
+              those scans. Any scans in the active scan list will be set
+              OPM_STATE_CLOSED and OPM_CALLBACK_END for those scans will
+              be called on the next opm_cycle.
+
+
+OPM_ERR_T opm_callback(OPM_T *, int, OPM_CALLBACK_T, void *)
+
+   Parameters: OPM_T: Scanner to set callbacks on
+               int: Callback type
+               OPM_CALLBACK_T: Pointer to custom callback function
+               void *: Pointer to be passed back, this is generally NULL
+
+   Return: OPM_ERR_T or OPM_SUCCESS on success
+
+           OPM_ERR_CBNOTFOUND: The given callback type is unknown
+
+
+
+   typedef void OPM_CALLBACK_T (OPM_T *, OPM_REMOTE_T *, int);
+
+
+   The opm_callback function is used to set a scanner wide callback function
+   for events. The opm_remote_callback can be used to set remote host specific
+   callback functions.
+
+   The first parameter to the callback function is the scanner in question, the
+   second is the remote host object in question, and the third is an optional integer
+   used for error codes.
+
+   The the OPENPROXY, NEGFAIL, TIMEOUT, and ERROR functions, the OPM_REMOTE struct
+   will have OPM_REMOTE_T::protocol, OPM_REMOTE_T::port and OPM_REMOTE_T::bytes_read
+   set.
+
+   Type                                 Description
+   --------------------------------------------------------------------------------
+
+   OPM_CALLBACK_OPENPROXY                An open proxy has been found.
+
+   OPM_CALLBACK_NEGFAIL                  Negotiation with the remote end has failed.
+
+   OPM_CALLBACK_TIMEOUT                  Neogitation with the remote end has timed out
+
+   OPM_CALLBACK_END                      Scan on remote host is complete, the OPM_REMOTE_T
+                                         has been removed from the scanner and is safe to
+                                         opm_remote_free
+
+   OPM_CALLBACK_ERROR                    An error has occured.
+
+
+
+
+
+void opm_cycle(OPM_T *)
+
+   Parameters: OPM_T: Scanner to cycle
+   Return: None
+
+   opm_cycle passes one cycle to a scanner. During a cycle the following functions
+   are performed in order:
+
+   	1. Scans are moved from a queue list to a live scan list if OPM_CONFIG_FD_LIMIT has not
+           yet been reached.
+
+        2. Scans in the live scan list are 'established'. That is, if OPM_CONFIG_FD_LIMIT has not
+           yet been reached, new connections will be established until OPM_CONFIG_FD_LIMIT is reached
+           or all scans have active file descriptors.
+
+        3. All scans are polled for read, write and negotiation failed events. Upon write event,
+           negotiation related data is sent to the remote host to negotiate the open proxy. Upon
+           read event, data is read in and tested against target strings. Upon negotiation fail (HUP)
+           events, scans are marked closed.
+
+        4. Free up the file descriptors of connections marked closed and remove such connections
+           from the scan list. If no connections are left for a given remote host, consider the scan
+           on that host ended and remove it from the scanner.
+
+    opm_cycle will need to be called consistently within the main loop of the client application.
+    opm_cycle will not block or cause delays. It is up to the client application to rate calls to
+    opm_cycle in order to save CPU.

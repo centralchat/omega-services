@@ -1,0 +1,13 @@
+CREATE TABLE channels (
+	channel TEXT,
+	action	INTEGER,
+	message	TEXT,
+	PRIMARY KEY(channel)
+);
+
+CREATE TABLE nicknames (
+	nickname	TEXT,
+	action		INTEGER,
+	message		TEXT,
+	PRIMARY KEY(nickname)
+);

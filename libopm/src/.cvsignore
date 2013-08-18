@@ -1,0 +1,10 @@
+*.sw[op]
+Makefile
+*.lo
+*.la
+setup.h
+stamp-h*
+.deps
+.libs
+test
+test_debug

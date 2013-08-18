@@ -1,0 +1,61 @@
+CC			= @CC@
+RM			= @RM@
+CFLAGS			= @CFLAGS@
+PICFLAGS		= @PICFLAGS@
+INSTALL			= @INSTALL@
+LDFLAGS			= @LDFLAGS@
+LIBS			= @LIBS@
+INCLUDES		= -I../include
+CPPFLAGS		= ${INCLUDES} @CPPFLAGS@
+
+INSTALL			= @INSTALL@
+INSTALL_DATA		= @INSTALL_DATA@
+
+prefix			= @prefix@
+modlib_dir		= $(prefix)/lib/
+moduledir		= @moduledir@
+
+SRCS = m_splitserv.c
+
+SH_OBJS = ${SRCS:.c=.so}
+
+default: build
+build: all
+
+all: $(SH_OBJS)
+
+install: install-mkdirs
+	@for file in $(SH_OBJS); do \
+		$(INSTALL_DATA) $$file $(DESTDIR)$(moduledir)/contrib/$$file; \
+	done
+
+install-mkdirs:
+	-@if test ! -d $(DESTDIR)$(moduledir)/contrib; then \
+		mkdir $(DESTDIR)$(moduledir)/contrib; \
+	fi
+
+.SUFFIXES: .sl .so .o
+
+.c.so:
+	@echo "Building Module $@"
+	@${CC} ${PICFLAGS} ${CPPFLAGS} ${LDFLAGS} ${CFLAGS} -fPIC $< -o $@ ${LIBS}
+
+.c.o:
+	@echo "Compiling $<"
+	@${CC} ${CPPFLAGS} ${CFLAGS} -c $<
+
+clean:
+	@for i in $(SUBDIRS); do \
+		echo "clean ==> modules/$$i"; \
+		cd $$i; \
+		${MAKE} clean || exit 1; cd ..; \
+	done
+	@${RM} -f *.so *.sl *.o *~ *.a protocol/*.so 
+
+distclean: clean
+	@for i in $(SUBDIRS); do \
+		echo "distclean ==> modules/$$i"; \
+		cd $$i; \
+		${MAKE} distclean || exit 1; cd ..; \
+	done
+	@${RM} -f Makefile

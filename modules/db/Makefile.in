@@ -1,0 +1,44 @@
+CC		= @CC@
+RM		= @RM@
+CFLAGS		= @CFLAGS@
+PICFLAGS	= @PICFLAGS@
+LDFLAGS		= @LDFLAGS@
+LIBS		= @LIBS@
+INCLUDES	= -I../../include
+CPPFLAGS	= ${INCLUDES} @CPPFLAGS@
+
+INSTALL		= @INSTALL@
+INSTALL_DATA	= @INSTALL_DATA@
+
+moddir	= @moduledir@/db 
+
+SRCS = flatfile.c 
+
+SH_OBJS	= ${SRCS:.c=.so}
+S_OBJS	= ${SRCS:.c=.o}
+
+default: build
+build: $(SH_OBJS)
+
+.SUFFIXES: .sl .so .o
+
+install: install-mkdirs
+	@for file in $(SH_OBJS); do \
+		$(INSTALL_DATA) $$file $(DESTDIR)$(moddir); \
+	done
+
+install-mkdirs:
+	-@if test ! -d $(DESTDIR)$(moddir); then \
+		mkdir $(DESTDIR)$(moddir); \
+	fi
+
+.c.so:
+	@echo "Building Database Module $@"
+	@${CC} ${PICFLAGS} ${CPPFLAGS} ${LDFLAGS} ${CFLAGS} $< -o $@ ${LIBS}
+
+clean:
+	@${RM} -f *.so *.sl *.o *~ *.a
+
+distclean: clean
+	@${RM} -f Makefile
+

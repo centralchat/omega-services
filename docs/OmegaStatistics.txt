@@ -1,0 +1,25 @@
+$Id: OmegaStatistics.txt 2296 2012-01-29 10:36:44Z twitch $
+
+Omega Statistical Reporting
+===========================
+
+This module is designed to allow the development team
+track the various versions in use across the IRC community.
+
+At the present time we report the following items:
+
+ * Name of the Omega server
+ * Uplink/Uplinkname
+ * Version
+ * Protocol
+
+This information is transmitted to our statistical gathering
+host via HTTP POST. The information recorded is not available
+to the public, but is used to generate statistics that are available
+publically. We will never share the above information with any one
+other then the development team.
+
+If you would not like your copy of Omega to report statistical data
+to us, you may disable it by passing --disable-omegastats to
+configure.
+

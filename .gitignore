@@ -1,0 +1,9 @@
+autom4te.cache
+config.log
+config.status
+security
+Makefile
+security.cfg
+configure.lineno
+version.log.tmp
+config.values

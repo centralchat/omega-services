@@ -1,0 +1,20 @@
+#!/bin/sh
+
+BASEDIR="/home/mitch/omega"
+CONFIG="zomgirc.cfg"
+NET="default"
+
+if [ ! -z "$1" ]; then
+    CONFIG="$1.cfg"
+    NET="$1"
+fi
+
+cd $BASEDIR;
+
+if [ ! -f "etc/$CONFIG" ]; then \
+    echo "No config for $NET found"; \
+    exit; \
+fi
+
+./bin/security -c $CONFIG  
+

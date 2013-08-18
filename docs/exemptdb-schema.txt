@@ -1,0 +1,7 @@
+CREATE TABLE exempts (
+	host   TEXT,
+	count 	INTEGER,
+	age 	INTEGER,
+	PRIMARY KEY(host)
+);
+

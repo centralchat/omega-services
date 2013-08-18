@@ -1,0 +1,8 @@
+CC		= @CC@
+CFLAGS		= @CFLAGS@
+PICFLAGS	= @PICFLAGS@
+LDFLAGS		= @LDFLAGS@
+LIBS		= @LIBS@
+INSTALL		= @INSTALL@
+
+moduledir	= @moduledir@

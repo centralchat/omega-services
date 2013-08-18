@@ -1,0 +1,61 @@
+CC		= @CC@
+RM		= @RM@
+CFLAGS		= @CFLAGS@
+PICFLAGS	= @PICFLAGS@
+LDFLAGS		= @LDFLAGS@
+LIBS		= @LIBS@
+INCLUDES	= -I../../include
+CPPFLAGS	= ${INCLUDES} @CPPFLAGS@
+
+INSTALL		= @INSTALL@
+INSTALL_DATA	= @INSTALL_DATA@
+
+moddir	= @moduledir@/client
+
+SRCS = g_core.c \
+       g_joinflood.c \
+       g_userinfo.c \
+       g_opm.c \
+       g_scan.c \
+	g_die.c \
+	g_bl.c \
+	g_log.c \
+	g_access.c \
+	g_update.c \
+	g_opers.c \
+	g_modlist.c \
+	g_modload.c \
+	g_modreload.c \
+	g_modunload.c \
+	g_watch.c \
+	g_sessions.c \
+	g_debug.c
+
+SH_OBJS	= ${SRCS:.c=.so}
+S_OBJS	= ${SRCS:.c=.o}
+
+default: build
+build: $(SH_OBJS)
+
+.SUFFIXES: .sl .so .o
+
+install: install-mkdirs
+	@for file in $(SH_OBJS); do \
+		$(INSTALL_DATA) $$file $(DESTDIR)$(moddir); \
+	done
+
+install-mkdirs:
+	-@if test ! -d $(DESTDIR)$(moddir); then \
+		mkdir $(DESTDIR)$(moddir); \
+	fi
+
+.c.so:
+	@echo "Building Client Module $@"
+	@${CC} ${PICFLAGS} ${CPPFLAGS} ${LDFLAGS} ${CFLAGS} $< -o $@ ${LIBS}
+
+clean:
+	@${RM} -f *.so *.sl *.o *~ *.a
+
+distclean: clean
+	@${RM} -f Makefile
+
