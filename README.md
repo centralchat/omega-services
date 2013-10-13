@@ -1,4 +1,4 @@
 omega-services
 ==============
 
-Omega IRC Security Services
+Omega IRC SEcurity Service
