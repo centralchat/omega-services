@@ -84,6 +84,8 @@ static void omega_sapart	(User *, int, char **);
 static void omega_unick     (User *, int, char **);
 static void omega_svskill   (Link *, int, char **);
 static void omega_skill     (Link *, int, char **);
+static void omega_netinfo   (Link *, int, char **);
+
 static void omega_error     (Link *, int, char **);
 static void omega_serv_null (Link *, int, char **);
 static void omega_invite	(User *, int, char **);
@@ -132,7 +134,8 @@ int Module_Init()
     AddUserCmd ("REHASH", omega_rehash);
 
 
-	AddServCmd ("KICK", omega_skick);
+	AddServCmd ("KICK",     omega_skick);
+    AddServCmd ("NETINFO",  omega_netinfo);
    	AddServCmd ("SJOIN",    omega_sjoin);
 	AddServCmd ("NICK",     omega_nick);
 	AddServCmd ("EOS",      omega_eos);
@@ -168,9 +171,12 @@ void unreal_capab(void)
 
 void unreal_server(void)
 {
-      send_line("SERVER %s %d :U0-*-%s %s", CfgSettings.servername, 1, CfgSettings.numeric,CfgSettings.desc);
-
+    send_line("SERVER %s %d :U0-*-%s %s", CfgSettings.servername, 1, CfgSettings.numeric,CfgSettings.desc);
+    
     Event ("CONNECT", 0, NULL);
+    
+    send_line("NETINFO 0 %lu 0 * 0 0 0 :%s", time(NULL), CfgSettings.network);
+    send_line("EOS");
 }
 
 
@@ -338,6 +344,12 @@ static void omega_nick  (Link* li, int argc, char **argv)
 
         return;
     }
+}
+
+/*****************************************/
+static void omega_netinfo(Link * li, int argc, char **argv)
+{
+    return;    
 }
 
 /*****************************************/

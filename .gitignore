@@ -23,4 +23,11 @@ Makefile
 security.cfg
 configure.lineno
 version.log.tmp
+*.lo
+*.la
 config.values
+libopm/*
+include/setup.h
+include/version.h
+contrib/Makefile.sub
+
