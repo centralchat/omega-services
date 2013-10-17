@@ -21,13 +21,16 @@ void load_config_values(void) {
 	else
 		snprintf (core.settings.pid_file, sizeof(core.settings.pid_file), "%s/app.pid", VAR_DIR, ce);
 
-
-	if ((ce = (char *)get_config_entry("bind", "host")))
+    if ((ce = (char *)get_config_entry("bind", "host")))
 		strlcpy (core.settings.local_ip,  ce,  sizeof(core.settings.local_ip));		
 
 
-	core.settings.port = get_config_int("bind", "port", 2990);
-	max_sockets        = get_config_int("settings", "maxfds", 1024);
+	if ((ce = (char *)get_config_entry("link", "name")))
+		strlcpy (core.settings.con_host,  ce,  sizeof(core.settings.local_ip));		
+
+	core.settings.con_port = get_config_int("link", "port", 7080);
+	core.settings.port     = get_config_int("bind", "port", 2990);
+	max_sockets            = get_config_int("settings", "maxfds", 1024);
 
 	// ConfBase *cb;
 

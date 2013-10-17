@@ -41,6 +41,7 @@ typedef struct
 	char * message;
 	size_t length;
 	int    completed;
+	
 } MessageBuffer;
 
 
@@ -56,6 +57,7 @@ typedef struct socket_
 	int	sd;
 	int timeout;
 	int flags;
+	int lines;
  
 	unsigned int buffer_len;
 	char	buffer[MAXLEN + 1];	
@@ -65,7 +67,6 @@ typedef struct socket_
 	struct  sockaddr_in	*sa;   
 
 	dlink_list	msg_buffer;
-
 	//Callbacks
 	void	(*read_callback)  (struct socket_ *, int);
 	void	(*write_callback) (void *);
@@ -80,10 +81,20 @@ E void     socket_dead      (Socket *);
 E void     socket_free      (Socket *);
 E void     socket_remove    (Socket *);
 E int      socket_write     (Socket *, char *, ...);
+E int      socket_read      (Socket * );
+
 E void socket_empty_callback(void);
 
-#define socket_read_callback(s, a) (s)->read_callback ? (s)->read_callback((s), a) : socket_empty_callback()
 
+/****************************************************/
+/**
+ * Socket callback macros
+ */
+
+
+#define socket_read_callback(s, a)  (s)->read_callback  ? (s)->read_callback((s), a) : socket_empty_callback()
+#define socket_write_callback(s)    (s)->write_callback ? (s)->write_callback((s))   : socket_empty_callback()
+#define socket_error_callback(s)    (s)->write_callback ? (s)->error_callback((s))   : socket_empty_callback()
 
 
 /****************************************************/

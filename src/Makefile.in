@@ -31,7 +31,6 @@ SRCS  =          \
   socketengine.c        \
   sighandler.c          \
   socket.c              \
-  httpd.c              \
   memory.c              \
   thread.c
 

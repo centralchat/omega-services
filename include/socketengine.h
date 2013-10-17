@@ -34,9 +34,10 @@ int  se_startup ();
 void se_cleanup ();
 int  se_receive ();
 int  se_accept  (Socket *);
-int  se_listen  (Socket *, char *, int);
 int  se_read    (Socket *);
-int _se_readsock(Socket *);
+int  se_listen  (Socket *, char *, int);
+int  se_connect (Socket *, char *, char *, int);
+
 
 
 

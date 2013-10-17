@@ -11,21 +11,22 @@ void core_parse_opts(int argc, char ** argv, char ** env) {
         switch (c)
         {
         	case 'c':
-		        if (optarg) {
-	              if ((optarg[strlen(optarg) - 4] == '.') 
-	              		&& optarg[strlen(optarg) - 3] == 'c') 
-	              {
-	                  if ((*optarg == '/') || (*optarg == '.'))
-	                      strlcpy (core.settings.config_file, optarg, sizeof(core.settings.config_file));
-	                  else
-	                      sprintf (core.settings.config_file, "%s/%s", CONFIG_DIR, optarg);
-	              }
-	            } else
+		        if (optarg) 
+		        {
+					if ((optarg[strlen(optarg) - 4] == '.') 
+						&& optarg[strlen(optarg) - 3] == 'c') 
+					{
+						if ((*optarg == '/') || (*optarg == '.'))
+							strlcpy (core.settings.config_file, optarg, sizeof(core.settings.config_file));
+						else
+							sprintf (core.settings.config_file, "%s/%s", CONFIG_DIR, optarg);
+					}
+	            } 
+	            else
 					fprintf(stderr,"Invalid config file specified with -c (%s) option skipping.\n", optarg);
 		        	break;
 		    case 'd':
-		    	if (optarg)
-		    		core.debug = atoi(optarg);
+		    	if (optarg) core.debug = atoi(optarg);
 		    	break;
 	        case 'n':
         		fprintf(stderr, "Running in nofork mode\n");
@@ -51,8 +52,7 @@ void core_init() {
     load_config_values();
 
 
-    if (!core.nofork) 
-    	daemonize();
+    if (!core.nofork) daemonize();
 
     //Initialize our signal handler
     sighandler_init();
@@ -70,9 +70,25 @@ void core_init() {
 /*********************************************************/
 
 void core_run(void) { 
-	Socket * s; 
+	int ret    = 0;
 
 	se_startup();
+
+
+	core.socket = socket_new();
+	socket_addto_list(core.socket);
+	//Connect outwards
+	printf("Connecting to \033[1;32m%s\033[0m port \033[1;32m%d\033[0m\033[0m\n", 
+		core.settings.con_host, core.settings.con_port);
+
+	ret = se_connect(core.socket, core.settings.con_host, 
+		core.settings.local_ip, core.settings.con_port);
+	if (ret < 0)
+	{
+		printf("Unable to connect to %s:%d", core.settings.con_host, 
+			core.settings.con_port);
+		core_exit(0);
+	}
 
 	log_message(LOG_NOTICE, "Begining normal runtime.");
 	sync_state = SYNC_STATE_NORMAL;
@@ -116,5 +132,16 @@ void core_exit(int code) {
 	log_message(LOG_NOTICE, "Exitting on code: %d", code);
 	//core_cleanup();
 	exit(code);
+}
+
+/*********************************************************/
+
+int core_reload() 
+{
+	log_message(LOG_NOTICE, "Reloading configuration files");
+	destroy_config_tree();
+	config_load(core.settings.config_file);
+    load_config_values();
+    return TRUE;
 }
 

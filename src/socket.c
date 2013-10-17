@@ -2,6 +2,14 @@
 #include "appinclude.h"
 
 
+static char _socket_getbyte (Socket *s);
+
+/* Read Buffer */
+static char readbuf[MAXLEN + 1]; //NOT THREAD SAFE
+static int  data_in_buffer  = 0;
+static int  recvbytes       = 0;
+
+
 void socket_empty_callback() { return; }
 
 //I say we require a descriptor prior to adding to the list.
@@ -10,7 +18,7 @@ Socket * socket_new(int sd)
 	dlink_node * dl = NULL;
 	Socket * tmp    = NULL;
 
-	if (!(tmp = malloc(sizeof(Socket))))
+	if (!(tmp = calloc(1,sizeof(Socket))))
 		return NULL;
 
 	tmp->flags = SOCKET_NEW;
@@ -147,4 +155,115 @@ int socket_write(Socket * s, char * fmt, ...)
 void socket_remove(Socket * s)
 {
 	s->flags = SOCK_DEAD;
+}
+
+/************************************************************/
+
+static char _socket_getbyte (Socket *s)
+{
+	static char		*c = readbuf;
+    static int      buffercnt = 0;
+
+	char			rc;
+	int				n;
+
+	if (data_in_buffer == 0)
+	{
+        memset (readbuf, '\0', sizeof(readbuf));
+		n = read (s->sd, readbuf, MAXLEN);
+		if (n <= 0)
+		{
+			if (s->flags & SOCK_UPLINK)
+			{
+            	socket_remove(s);				
+				return '\0';
+			}
+			else
+			{
+                alog (LOG_ERROR, "Read error on %s: (%d) %s", s->name, n, strerror(errno));
+                socket_error_callback(s);               
+				socket_remove(s);
+				return '\0';
+			}
+		}
+		readbuf[n] = '\0';
+        recvbytes += n;
+		c = readbuf;
+		data_in_buffer = 1;
+	}
+
+	if (*c == '\0')
+	{
+		data_in_buffer = 0;
+		readbuf[0] = '\0';
+		return *c;
+	}
+    
+	rc = *c;
+	c++;
+	return rc;
+}
+
+/************************************************************/
+
+int socket_read(Socket * s)
+{
+	char	message[MAXLEN + 1];
+	int				i;
+	char			c;
+	MessageBuffer	*m;
+	dlink_node		*dl;
+
+	i = 0;
+
+	if (s->buffer[0] != '\0')
+	{
+        alog (LOG_DEBUG2, "IO: %s buffer: %s", s->name, s->buffer);
+		strlcpy (message, s->buffer, (MAXLEN + 1));
+		i = strlen(message);
+		message[i] = '\0';
+		s->buffer[0] = '\0';
+	}
+
+	while (TRUE)
+	{
+		c = _socket_getbyte (s);
+
+		if (s->flags & SOCK_DEAD) {
+            if (s->buffer != '\0')
+                alog (LOG_DEBUG2, "read buffer: %s\n", s->buffer);
+			return 1;
+        }
+
+		if (c == '\0')
+		{
+			if (i > 0)
+			{
+				message[i] = '\0';
+				strlcpy (s->buffer, message, MAXLEN + 1);
+                break;
+                //continue;
+			}
+			break;
+		}
+
+		if ((c == '\r') || (c == '\n'))
+		{
+			if (i > 0)
+			{
+				message[i] = '\0';
+				dl	= dlink_create ();
+				m	= (MessageBuffer *) calloc (1, sizeof(MessageBuffer));
+				memset (m->message, '\0', sizeof(m->message));
+				strlcpy (m->message, message, sizeof(m->message));
+				s->lines++;
+				dlink_add_tail (m, dl, &s->msg_buffer);
+				i = 0;
+			}
+			continue;
+		}
+		message[i] = c;
+		i++;
+	}
+	return 0;
 }

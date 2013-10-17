@@ -63,7 +63,7 @@ static void select_build_fdsets()
 		else if (socket_is_read(s))
 			FD_SET (s->sd, &rfdset);
 
-		alog(LOG_DEBUG3, "Socket is in: %s (Name: %s)(Fd: %d)", (s->flags & SOCK_READ)? "Read" : "Write", s->name, (int)s->sd);
+		alog(LOG_DEBUG3, "Socket is in: %s (Fd: %d)", socket_is_read(s) ? "Read" : "Write", s->sd);
 	}
 }
 
@@ -90,16 +90,20 @@ static int select_receive(void) {
 			s = dl->data;
 			if (FD_ISSET (s->sd, &rfdset))
 			{	
-				if (!socket_is_listen(s)){
+				if (!socket_is_listen(s))
+				{
 
-					int bread = se_read(s);
+					int bread = socket_read(s);
 					if (bread <= -1)
 					{
+						socket_error_callback(s);
 						socket_remove(s);
 						continue;
 					}
 					socket_read_callback(s, bread);
-				} else { 
+				} 
+				else 
+				{ 
 					tmp_sock        = socket_new();
 					tmp_sock->sd    = se_accept(s);
 					tmp_sock->flags = SOCK_READ;

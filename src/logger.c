@@ -86,6 +86,8 @@ void __attribute__((format(printf, 5, 0))) log_message
 {
   //TODO: Make this memory dynamic alloc
   char message[8129];
+  memset(message, 0, 8129);
+  
   va_list ap;
 
   switch (level) 

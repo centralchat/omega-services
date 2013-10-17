@@ -233,76 +233,152 @@ int _se_readsock(Socket * s)
 	return n;
 }
 
-/************************************************************/
+/*************************************************************/
 
-int se_read(Socket * s)
+
+#ifdef HAVE_GETADDRINFO
+struct addrinfo	* gethostinfo (char const *host, int port);
+
+int se_connect(Socket * s, char *server, char *vhost, int port)
 {
-	MessageBuffer * m = NULL;
-	dlink_node    * dl;
+	struct addrinfo	*hostres, *res;
+	struct addrinfo *bindres = NULL;
+	int optval, flags, ret;
 
+    s->sd   = -1;
 
-	int bytes = 0;
-	int len   = 0;
-
-	memset(s->buffer, '\0', MAXLEN+1);
-	s->buffer_len = 0;
-
-	// while (TRUE) 
-	// {
-	bytes = _se_readsock(s);
-	if (bytes <= 0) return bytes;
-
-	if (s->buffer_len <= 0) return 0;
-
-	char * ptr   = s->buffer;
-	char * start = s->buffer;
-
-	while (*ptr)
+	hostres		= gethostinfo (server, port);
+	if (hostres == NULL)
 	{
-		if (strncmp(ENDBLOCK, ptr, 4)==0)
-		{
-			if (!(m = malloc(sizeof(MessageBuffer))))
-				return -1;
-			
-			if (!(m->message = malloc(sizeof(char)*len)))
-			{
-				free(m);
-				return -1;
-			}
-			strlcpy(m->message, start, ptr - start);
-			m->length = len;
-
-			dl = dlink_create();
-			dlink_add_tail(m, dl, &s->msg_buffer);
-
-			char modlist[2048];
-			Module * mo = NULL;
-			dlink_node *mdl; 
-			int cnt = 1;
-			DLINK_FOREACH(mdl, modules.head) {
-				mo = mdl->data;
-				sprintf(modlist, "[%d] %s: %s\n", cnt, mod_type_string(mo->type), mo->name);
-				cnt++;
-			}
-
-			int new_len = strlen(m->message) + strlen(modlist) + 26;
-			http_headers(s, new_len); //REMOVE ME
-			socket_write(s, "<pre>");
-			socket_write(s, m->message);
-			socket_write(s, "\r\n");
-			socket_write(s, "Module List\r\n");
-			socket_write(s, modlist);
-			socket_write(s, "</pre>");
-			socket_write(s, ENDBLOCK);
-
-			socket_remove(s);
-
-
-
-			len = 0;			
-		}
-		len++;
-		ptr++;
+		log_message(LOG_ERROR,"Lookup failure for hostname %s", server);
+        return 0;
 	}
-	return 1;
+
+	if (*vhost != '\0')
+	{
+		bindres	= gethostinfo (vhost, 0);
+		if (bindres == NULL)
+		{
+			log_message(LOG_ERROR,"Connection Failed! (Lookup failure for vhost %s)", vhost);
+            return 0;
+		}
+	}
+
+	for (res = hostres; res != NULL; res = res->ai_next)
+	{
+		s->sd	= socket (res->ai_family, res->ai_socktype, res->ai_protocol);
+
+		if (s->sd < 0)
+			continue;
+
+		optval	= 1;
+
+		setsockopt (s->sd, SOL_SOCKET, SO_REUSEADDR, (char *)&optval, sizeof(optval));
+
+		if (!(s->flags & SOCK_UPLINK))
+		{         
+		    flags	 = fcntl (s->sd, F_GETFL, 0);
+		    flags	|= O_NONBLOCK;
+		    (void) fcntl (s->sd, F_SETFL, flags);
+		}
+
+		if (bindres != NULL)
+		{
+			if (bind (s->sd, bindres->ai_addr, bindres->ai_addrlen) < 0)
+			{
+				fprintf (stdout, "Connect Failed! (Unable to bind to %s)\n", vhost);
+				perror("Bind");	
+				s->sd	= -1;
+				return -1;
+			}
+		}
+
+		if ((connect (s->sd, res->ai_addr, res->ai_addrlen)) != 0)
+		{
+			if (!(flags & O_NONBLOCK))
+			{
+				log_message(LOG_ERROR, "Connect Failed! (%s)\n", strerror(errno));
+				s->sd	= -1;
+    			return -1;
+			}
+		}
+		if (s->sd > max_sockets)
+			max_sockets	= s->sd;
+
+		if (!(s->flags & SOCK_UPLINK))
+		{
+			s->flags |= SOCK_WRITE;
+		}
+		else 
+		{
+            if (!(s->flags & SOCK_READ) || !(s->flags & SOCK_WRITE))
+			    s->flags |= SOCK_READ;
+        }
+		break;
+	}
+
+	freeaddrinfo (hostres);
+
+	if (bindres != NULL)
+		freeaddrinfo (bindres);
+
+    return s->sd;
 }
+#else
+
+int se_connect(Socket* s, char *server, char *vhost, int port)
+{
+	struct hostent *he = NULL;
+	struct sockaddr_in my_sin;
+	struct in_addr * in;
+
+
+	if((s->sd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+	{
+		perror("Unable to bind Socket\n");
+		return -1;
+	}
+
+	if (*vhost != '\0')
+	{
+		memset ((void *) &my_sin, '\0', sizeof(my_sin));
+		my_sin.sin_family	= AF_INET;
+
+		if ((he = gethostbyname (vhost)) == NULL)
+		{
+			printf (" Failed! (Invalid Address)\n");
+			return -1;
+		}
+
+		in	= (struct in_addr *) (he->h_addr_list[0]);
+		my_sin.sin_addr.s_addr	= in->s_addr;
+		my_sin.sin_port = 0;
+
+		if (bind (s->sd, (struct sockaddr *) &my_sin, sizeof(my_sin)) < 0)
+		{
+			printf ("Connection Failed! (Unable to bind to %s)\n", vhost);
+			return -1;
+		}
+	}
+
+	he = gethostbyname(CfgSettings.uplink);
+	if (!he)
+	{
+		printf ("Invalid Address\n");
+		return -1;
+	}
+
+	my_sin.sin_family = AF_INET;
+	my_sin.sin_port = htons(port);	/* port, htons converts integers to network short */
+	my_sin.sin_addr = *((struct in_addr *) he->h_addr);
+	memset(my_sin.sin_zero, 0, sizeof(my_sin.sin_zero)); /* sin_zero is 8 bytes used for padding */
+
+	if(connect(s->sd, (struct sockaddr *)&my_sin, sizeof(struct sockaddr)) == -1)
+	{
+		perror("Connect\n");
+		exit(1);
+	}
+	return s->sd;
+}
+
+#endif

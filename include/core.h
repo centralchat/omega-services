@@ -16,7 +16,7 @@ enum SYNC_STATES {
 
 /********************************/
 /**
- *       CONFIG SETTINGS
+ *       Core/Config info
  */
  
 
@@ -36,6 +36,8 @@ struct _core {
 		char	local_ip[MAXHOST];
 		int     port;
 		char    config_file[MAXPATH];
+		char    con_host[MAXHOST];
+		int     con_port;
 	} settings;
 
 	struct { 
@@ -44,16 +46,19 @@ struct _core {
 		int  argc;
 	} cmdline;
 
+	Socket * socket;
+
 } core;
 
 int debug;
-int sync_state;
 
-void core_init        (void);
-void core_run         (void);
-void core_exit        (int);
-void core_cleanup     (void);
-void core_once_around (void);
-void core_parse_opts  (int, char **, char **);
+E int sync_state;
+E void core_init        (void);
+E void core_run         (void);
+E void core_exit        (int);
+E void core_cleanup     (void);
+E void core_once_around (void);
+E void core_parse_opts  (int, char **, char **);
+E int core_reload       (void);
 
 #endif
