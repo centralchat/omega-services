@@ -37,13 +37,14 @@ fi
 CUR=`pwd`
 
 for dir in `echo -n $PATH | sed 's/:/ /g'`; do
-    if [ -x "${dir}/svnversion" ]; then
-        if [ -d ".svn" ]; then
-            REV=`${dir}/svnversion ${CUR} | sed 's/^\([0-9]{1,9}\)M*$/\1/' | cut -f 1 -d : | sed -e 's/M//'`
+    if [ -x "${dir}/git" ]; then
+        if [ -d ".git" ]; then
+            SHA=`cat .git/ORIG_HEAD`
+            #REV=${SHA:0:8}
 
-            if test "X$REV" = "Xexported"; then
+            #if test "X$REV" = "Xexported"; then
 				REV="0"
-            fi
+            #fi
         else
 			REV=""
             if [ -f ../.snapshot ]; then
@@ -79,10 +80,9 @@ UNAME_SHORT="${SUNAME} (${SPROC})"
 
 
 cat >${TODIR}version.h <<EOF
-/* Version information for Omega Server.
- *
+/* Version information.
+ * (C) 2013 Mitch Rodrigues
  * (C) 2008-2010 Omega Team
- *
  *
  * Please read COPYING and CREDITS for further details.
  *
@@ -101,6 +101,7 @@ cat >${TODIR}version.h <<EOF
 #define VERSION_PATCH	$VERSION_PATCH
 #define VERSION_EXTRA	"$VERSION_EXTRA"
 #define VERSION_BUILD	"$REV" 
+#define VERSION_SHA     "$SHA" 
 
 #define VERSION_NUM ((VERSION_MAJOR * 1000) + (VERSION_MINOR * 100) + VERSION_PATCH)
 

@@ -3,7 +3,7 @@ dnl configure.ac - autoconf configuration file
 AC_PREREQ(2.61)
 AC_COPYRIGHT([$Id: configure.ac 2357 2012-02-11 23:49:35Z twitch $])
 
-AC_INIT([Omega],[Sabre])
+AC_INIT([Omega],[Rework])
 AC_CONFIG_HEADER(include/setup.h)
 AC_PREFIX_DEFAULT(`echo -n $HOME/omega`)
 
@@ -12,6 +12,7 @@ AC_PROG_CC
 AC_LANG(C)
 
 sinclude([aclocal.m4])
+sinclude([mysql.m4])
 
 OSNAME=`uname -s`
 PWD=`pwd`
@@ -25,6 +26,9 @@ case "$OSNAME" in
 		CFLAGS="$CFLAGS -I/usr/local/include"
 	;;
 esac
+
+AC_DEFINE(OMG_PKGNAME ,"$PACKAGE_NAME", [Define this to disable debugging support.])
+AC_DEFINE(OMG_RCNAME  ,"$PACKAGE_VERSION", [Define this to disable debugging support.])
 
 AC_ISC_POSIX
 AC_C_INLINE
@@ -43,6 +47,10 @@ AC_CHECK_FUNCS([strlcpy strlcat getaddrinfo strdup setproctitle backtrace snprin
 AC_PATH_PROG(RM, rm)
 AC_PATH_PROG(CP, cp)
 AC_PATH_PROG(MV, mv)
+
+
+AX_LIB_MYSQL([0.0])
+
 
 dnl These checks are for our modules, if we are forcing modules we need to make sure
 dnl we error when the needed options are unavailable
@@ -181,14 +189,15 @@ AC_HELP_STRING([--with-confdir=DIR],
                [Directory to install config files.]),
                [ confdir=`echo $withval | sed 's/\/$//'`
                  AC_MSG_RESULT(yes)
-                 AC_DEFINE_DIR(ETC_DIR, confdir, [Prefix where config files are installed.])
+                 AC_DEFINE_DIR(CONFIG_DIR, confdir, [Prefix where config files are installed.])
                  AC_SUBST_DIR([confdir]) ],
-               [ confdir='${prefix}/etc'
+               [ confdir='${prefix}/config'
                  AC_MSG_RESULT(no)
-                 AC_DEFINE_DIR(ETC_DIR, confdir, [Prefix where config files are installed.])
+                 AC_DEFINE_DIR(CONFIG_DIR, confdir, [Prefix where config files are installed.])
                  AC_SUBST_DIR([confdir])]
 )
 
+dnl 
 dnl **********************************************************************
 dnl Check for --with-logdir
 dnl **********************************************************************
@@ -277,6 +286,43 @@ AC_HELP_STRING([--with-dbdir=DIR],
 		  AC_MSG_RESULT(no)
 		  AC_DEFINE_DIR(DBDIR, dbdir, [Prefix where databases are saved.])
 		  AC_SUBST_DIR([dbdir])]
+)
+
+dnl *****************************************************************
+dnl *  Check for --with-vardir
+dnl *****************************************************************
+
+AC_MSG_CHECKING([wether to modify vardir])
+AC_ARG_WITH(vardir,
+AC_HELP_STRING([--with-vardir=DIR],
+        [Directory where misc runtime files are saved]),
+        [ vardir=`echo $withval | sed 's/\/$//'`
+          AC_MSG_RESULT(yes)
+          AC_DEFINE_DIR(VAR_DIR, vardir, [Prefix where misc runtime files are saved.])
+          AC_SUBST_DIR([vardir]) ],
+        [ vardir='${prefix}/var'
+          AC_MSG_RESULT(no)
+          AC_DEFINE_DIR(VAR_DIR, vardir, [Prefix where misc runtime are saved.])
+          AC_SUBST_DIR([vardir])]
+)
+
+
+dnl *****************************************************************
+dnl *  Check for --with-dbdir
+dnl *****************************************************************
+
+AC_MSG_CHECKING([wether to modify tmp_dir])
+AC_ARG_WITH(tmpdir,
+AC_HELP_STRING([--with-tmpdir=DIR],
+        [Directory where temporary files are saved]),
+        [ tmpdir=`echo $withval | sed 's/\/$//'`
+          AC_MSG_RESULT(yes)
+          AC_DEFINE_DIR(TMP_DIR, tmpdir, [Prefix where temporary files are saved.])
+          AC_SUBST_DIR([tmpdir]) ],
+        [ tmpdir='${vardir}/tmp'
+          AC_MSG_RESULT(no)
+          AC_DEFINE_DIR(TMP_DIR, tmpdir, [Prefix where temp files are saved.])
+          AC_SUBST_DIR([tmpdir])]
 )
 
 dnl OpenSSL support
@@ -548,22 +594,37 @@ fi
 
 AC_CONFIG_SUBDIRS(libopm)
 
-CFLAGS="$CFLAGS $SSL_INCLUDES -I$PWD/libopm/src/"
-LIBS="$LIBS $SSL_LIBS $PWD/libopm/src/.libs/libopm.a"
+CFLAGS="$CFLAGS $SSL_INCLUDES $MYSQL_CFLAGS -I$PWD/libopm/src/"
+LIBS="$LIBS $SSL_LIBS $MYSQL_LDFLAGS $PWD/libopm/src/.libs/libopm.a"
+
+dnl AC_CONFIG_FILES(
+dnl     Makefile                \
+dnl     src/Makefile            \
+dnl     docs/Makefile           \
+dnl     tools/Makefile          \
+dnl     modules/Makefile        \
+dnl     modules/core/Makefile   \
+dnl     modules/db/Makefile   \
+dnl     modules/client/Makefile     \
+dnl     modules/protocol/Makefile            \
+dnl     contrib/Makefile          \
+dnl     contrib/Makefile.sub        \
+dnl )
 
 AC_CONFIG_FILES(
     Makefile                \
     src/Makefile            \
-    docs/Makefile           \
-    tools/Makefile          \
+    src/socketengine/Makefile \
+dnl    src/database/Makefile   \
     modules/Makefile        \
     modules/core/Makefile   \
     modules/db/Makefile   \
     modules/client/Makefile     \
     modules/protocol/Makefile            \
-    contrib/Makefile          \
-    contrib/Makefile.sub        \
+    docs/Makefile           \
+    tools/Makefile          \
 )
+
 
 AC_OUTPUT
 
@@ -581,16 +642,28 @@ else
 echo "Omega Stats.............. disabled"
 fi
 
+echo
+echo
+echo "Compiling $PACKAGE_NAME ($PACKAGE_VERSION)"
+echo
+echo "Installing into: $prefix"
+echo
 echo "Assert................... $assert"
 echo "Dmalloc.................. $ac_cv_dmalloc"
 echo "Threading................ $ac_cv_threads_output"
 echo "Debug.................... $ac_cv_debug"
 echo "XMLRPC................... $ac_cv_xmlrpc"
-echo "SQLite3.................. $ac_cv_sqlite3"
-echo "OpenSSL.................. $ac_cv_openssl"
-echo "GnuTLS................... $ac_cv_gnutls ($ac_cv_gnutls_ret)"
-echo "libevent................. $ac_cv_libevent_output"
 echo
+echo "Secure Socket "
+echo "   OpenSSL............... $ac_cv_openssl"
+echo "   GnuTLS................ $ac_cv_gnutls ($ac_cv_gnutls_ret)"
+echo "Database "
+echo "   MySQL  ............... $found_mysql"
+echo "   SQLite3............... $ac_cv_sqlite3"
+echo "Misc "
+echo "   libevent.............. $ac_cv_libevent_output"
+echo
+
 
 echo "To complete installation type make"
 echo

@@ -9,7 +9,7 @@ coredir       = @coredir@
 dbdir		= @dbdir@
 RM	       = @RM@
 
-SUBDIRS		= libopm src modules docs tools contrib
+SUBDIRS		= libopm src modules docs tools #contrib
 
 all: build
 

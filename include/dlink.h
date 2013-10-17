@@ -1,18 +1,7 @@
-/* Sentinel - IRC Statistical and Operator Services
-** dlink.h - Hybrid/Squid derived doubly linked list library
-**
-** Copyright W. Campbell and others.  See README for more details
-** Some code Copyright: Jonathan George, Kai Seidler, ircd-hybrid Team,
-**                      IRCnet IRCD developers.
-**
-** $Id: dlink.h 1545 2009-12-05 08:15:05Z twitch $
-*/
-
 /* Original Header: */
-
 /* #Id: tools.h,v 1.5 2002/09/11 17:55:38 db Exp # */
-#ifndef __TOOLS_H
-#define __TOOLS_H
+#ifndef __DLINK_H
+#define __DLINK_H
 
 typedef struct _dlink_node dlink_node;
 typedef struct _dlink_list dlink_list;
@@ -29,7 +18,13 @@ struct _dlink_list
   dlink_node *head;
   dlink_node *tail;
   int count;
+#ifdef HAVE_PTHREAD
+  pthread_mutex_t lock;
+#else
+  int lock;
+#endif
 };
+
 
 extern size_t dlink_alloc;
 extern int dlink_count;
@@ -42,21 +37,37 @@ void dlink_free(dlink_node *m);
  */
 
 /*
- * Walks forward of a list.  
+ * Walks forward of a list.
  * pos is your node
  * head is your list head
  */
 #define DLINK_FOREACH(pos, head) for (pos = (head); pos != NULL; pos = pos->next)
 
+#define DLINK_FREE_REMOVE(ptr, node, list) \
+ 	node = dlink_find_delete(ptr, &(list)); \
+ 	if (node) { \
+ 		dlink_free(node); \
+ 		node = NULL; \
+ 	} \
+ 	free(ptr)
+
+
+#define DLINK_REMOVE(ptr, node, list) \
+ 	node = dlink_find_delete(ptr, &(list)); \
+ 	if (node) { \
+ 		dlink_free(node); \
+ 		node = NULL; \
+ 	} 
+
 /*
- * Walks forward of a list safely while removing nodes 
+ * Walks forward of a list safely while removing nodes
  * pos is your node
  * n is another list head for temporary storage
  * head is your list head
  */
 #define DLINK_FOREACH_SAFE(pos, n, head) for (pos = (head), n = pos ? pos->next : NULL; pos != NULL; pos = n, n = pos ? pos->next : NULL)
-
 #define DLINK_FOREACH_PREV(pos, head) for (pos = (head); pos != NULL; pos = pos->prev)
+
 
 
 

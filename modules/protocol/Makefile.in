@@ -13,19 +13,19 @@ INSTALL_DATA		= @INSTALL_DATA@
 
 moduledir		= @moduledir@/protocol
 
-SRCS = \
-  bahamut.c	\
-  inspircd.c	\
-  inspircd12.c  \
-  inspircd20.c  \
-  kcircd.c	\
-  ratbox.c      \
-  ratbox3.c     \
-  hybrid.c      \
-  unreal32.c	\
-  directircd.c	\
-  charybdis.c   \
-  plexus.c
+SRCS = #\
+# bahamut.c	\
+# inspircd.c	\
+# inspircd12.c  \
+# inspircd20.c  \
+# kcircd.c	\
+# ratbox.c      \
+# ratbox3.c     \
+# hybrid.c      \
+# unreal32.c	\
+# directircd.c	\
+# charybdis.c   \
+# plexus.c
 
 SH_OBJS = ${SRCS:.c=.so}
 S_OBJS = ${SRCS:.c=.o}

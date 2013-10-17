@@ -1,48 +1,120 @@
-/*
- *         	  OMEGA IRC SECURITY SERVICES
- * 	      	    (C) 2008-10 core Dev Team
- *
- *   See file AUTHORS in IRC package for additional names of
- *   the programmers.
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 1, or (at your option)
- *   any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- *
- *    $Id: core.c 2252 2012-01-22 09:21:23Z twitch $
- */
+#include "stdinclude.h"
+#include "appinclude.h"
 
-#include "stdinc.h"
-#include "server.h"
+/*********************************************************/
 
+void core_parse_opts(int argc, char ** argv, char ** env) { 
+	int c;
 
-
-Core* Core_Construct() 
-{
-	Core *core;
-	
-	if (!(core = (Core*) malloc(sizeof(Core))))
-			return NULL; //we cant init our core struct
-			
-	core->age = time(NULL);
-	sync_state = core->state = STARTUP;
-	core->exit = Exit;
-	core->rehash = Rehash;
-	core->log = alog;
-	//memset(core->cm,'\0',sizeof(core->cm));
-	return core;
+	while ((c = getopt (argc, argv, "bnc:d:")) != -1)
+    {
+        switch (c)
+        {
+        	case 'c':
+		        if (optarg) {
+	              if ((optarg[strlen(optarg) - 4] == '.') 
+	              		&& optarg[strlen(optarg) - 3] == 'c') 
+	              {
+	                  if ((*optarg == '/') || (*optarg == '.'))
+	                      strlcpy (core.settings.config_file, optarg, sizeof(core.settings.config_file));
+	                  else
+	                      sprintf (core.settings.config_file, "%s/%s", CONFIG_DIR, optarg);
+	              }
+	            } else
+					fprintf(stderr,"Invalid config file specified with -c (%s) option skipping.\n", optarg);
+		        	break;
+		    case 'd':
+		    	if (optarg)
+		    		core.debug = atoi(optarg);
+		    	break;
+	        case 'n':
+        		fprintf(stderr, "Running in nofork mode\n");
+        		core.nofork = TRUE;
+        		break;
+        }
+    }
+    core.cmdline.argv = argv;
+    core.cmdline.argc = argc;
+    core.cmdline.env  = env;
 }
 
 
+/*********************************************************/
+
+void core_init() {
+	sync_state = SYNC_STATE_STARTUP;
+
+    log_message(LOG_NOTICE, "Config File: %s\n", core.settings.config_file);
+
+    config_load(core.settings.config_file);
+
+    load_config_values();
+
+
+    if (!core.nofork) 
+    	daemonize();
+
+    //Initialize our signal handler
+    sighandler_init();
+
+    atexit(core_cleanup);
+
+
+   	mq_load_module("select", MOD_TYPE_SOCKET); //inject into modq
+   	
+    modules_init(); // Run our modq to handle config load modules
+    				// This will load all module orders, PRE -> STD -> POST
+   
+}
+
+/*********************************************************/
+
+void core_run(void) { 
+	Socket * s; 
+
+	se_startup();
+
+	log_message(LOG_NOTICE, "Begining normal runtime.");
+	sync_state = SYNC_STATE_NORMAL;
+	while (sync_state != SYNC_STATE_SHUTDOWN)
+		core_once_around();
+}
+
+
+/*********************************************************/
+
+void core_once_around(void)
+{
+	se_receive();
+}
+
+/*********************************************************/
+
+void core_cleanup(void) {
+	FILE *fp;
+
+	log_message(LOG_NOTICE, "Cleaning up core");
+	destroy_config_tree();
+
+	se_cleanup();
+	modules_purge();
+
+	//We have a pidfile last we need to clean it up
+	if (!core.nofork && (fp = fopen(core.settings.pid_file, "r"))) 
+	{
+		fclose(fp);
+		unlink(core.settings.pid_file);
+	}
+
+	//Close our logs last, we dont want them reopened.
+	log_close();
+}
+
+/*********************************************************/
+
+void core_exit(int code) {
+	log_message(LOG_NOTICE, "Exitting on code: %d", code);
+	//core_cleanup();
+	exit(code);
+}
 

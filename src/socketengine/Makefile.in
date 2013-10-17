@@ -4,21 +4,15 @@ CFLAGS		= @CFLAGS@
 PICFLAGS	= @PICFLAGS@
 LDFLAGS		= @LDFLAGS@
 LIBS		= @LIBS@
-INCLUDES	= -I../../include
-CPPFLAGS	= ${INCLUDES} @CPPFLAGS@
+INCLUDES	= -I../../include -I../../../include
+CPPFLAGS	= ${INCLUDES} @CPPFLAGS@ 
 
-INSTALL		= @INSTALL@
+INSTALL		    = @INSTALL@
 INSTALL_DATA	= @INSTALL_DATA@
 
-coredir	= @coredir@
+socketenginedir	= @moduledir@/socketengine
 
-SRCS 	= #m_fantasy.c \
-	#m_version.c \
-	#m_whois.c \
-	#m_stats.c \
-	#m_info.c \
-	#m_ping.c \
-	#m_trace.c	
+SRCS 	= select.c
 
 SH_OBJS	= ${SRCS:.c=.so}
 S_OBJS	= ${SRCS:.c=.o}
@@ -30,16 +24,16 @@ build: $(SH_OBJS)
 
 install: install-mkdirs
 	@for file in $(SH_OBJS); do \
-		$(INSTALL_DATA) $$file $(DESTDIR)$(coredir); \
+		$(INSTALL_DATA) $$file $(DESTDIR)$(socketenginedir); \
 	done
 
 install-mkdirs:
-	-@if test ! -d $(DESTDIR)$(coredir); then \
-		mkdir $(DESTDIR)$(coredir); \
+	-@if test ! -d $(DESTDIR)$(socketenginedir); then \
+		mkdir $(DESTDIR)$(socketenginedir); \
 	fi
 
 .c.so:
-	@echo "Building Core Module $@"
+	@echo "[CC] SocketEngine: $@"
 	@${CC} ${PICFLAGS} ${CPPFLAGS} ${LDFLAGS} ${CFLAGS} $< -o $@ ${LIBS}
 
 clean:

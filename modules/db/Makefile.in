@@ -12,7 +12,7 @@ INSTALL_DATA	= @INSTALL_DATA@
 
 moddir	= @moduledir@/db 
 
-SRCS = flatfile.c 
+SRCS = #flatfile.c 
 
 SH_OBJS	= ${SRCS:.c=.so}
 S_OBJS	= ${SRCS:.c=.o}

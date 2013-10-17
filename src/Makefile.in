@@ -16,54 +16,92 @@ default: all
 all: security
 build: all
 
-SRCS	=	     \
-  base64.c	     \
-  access.c           \
-  config.c	     \
-  configparse.c	     \
-  dlink.c	     \
-  eventhandler.c     \
-  main.c	     \
-  protocol.c	     \
-  socketengine.c     \
-  dbmanager.c     \
-  irc_string.c       \
-  parser.c           \
+SUBDIRS = socketengine
+
+SRCS  =          \
+  core.c           \
+  config.c       \
+  configparser.c   \
+  dlink.c      \
+  main.c       \
+  database.c   \
   module.c           \
   tools.c            \
-  log.c              \
-  sig.c              \
-  channel.c          \
-  match.c            \
-  cmds.c             \
-  threads.c	 \
-  links.c		\
-  metadata.c	\
-  send.c		\
-  core.c		\
-  user.c 
+  logger.c              \
+  socketengine.c        \
+  sighandler.c          \
+  socket.c              \
+  httpd.c              \
+  memory.c              \
+  thread.c
+
+#SRCS	=	     \
+#  base64.c	     \
+#  access.c           \
+#  config.c	     \
+#  configparse.c	     \
+#  dlink.c	     \
+#  eventhandler.c     \
+#  main.c	     \
+#  protocol.c	     \
+#  socketengine.c     \
+#  dbmanager.c     \
+#  irc_string.c       \
+#  parser.c           \
+#  module.c           \
+#  tools.c            \
+#  log.c              \
+#  sig.c              \
+#  channel.c          \
+#  match.c            \
+#  cmds.c             \
+#  threads.c	 \
+#  links.c		\
+#  metadata.c	\
+#  send.c		\
+#  core.c		\
+#  user.c 
 
 OBJS = ${SRCS:.c=.o}
 
-security: $(OBJS)
-	@${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${OBJS} ${LIBS}
-	@echo "Linking $@"
+security: run_subdirs $(OBJS)
+  @${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${OBJS} ${LIBS} ${MYSQL}
+  @echo "[LD] $@"
 
+run_subdirs:
+  @for i in $(SUBDIRS); do \
+    echo "build ==> src/$$i"; \
+    cd   $$i; \
+    ${MAKE} build || exit 1; cd   ..; \
+  done
+  
 install: install-mkdir
-	@$(INSTALL_BIN) security $(DESTDIR)$(bindir)
+  @for i in $(SUBDIRS); do \
+    echo "install ==> src/$$i"; \
+    cd   $$i; \
+    ${MAKE} install || exit 1; cd   ..; \
+  done
+  @$(INSTALL_BIN) security $(DESTDIR)$(bindir)
+
 
 install-mkdir:
 
 clean:
-	@${RM} -f *.o security *~ security.core *.core
+  @for i in $(SUBDIRS); do \
+    echo "build ==> src/$$i"; \
+    cd   $$i; \
+    ${MAKE} clean || exit 1; cd   ..; \
+  done
+  @${RM} -f *.o security *~ security.core *.core
 
 header-guard:
-	@${RM} -f *.h
+  @${RM} -f *.h
+
 
 distclean: clean
 	@${RM} -f Makefile
 
 .c.o:
-	@echo "Compiling $<"
+	@echo "[CC] $<"
 	@${CC} ${CPPFLAGS} ${CFLAGS} -c $<
 

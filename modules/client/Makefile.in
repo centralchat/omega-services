@@ -12,24 +12,24 @@ INSTALL_DATA	= @INSTALL_DATA@
 
 moddir	= @moduledir@/client
 
-SRCS = g_core.c \
-       g_joinflood.c \
-       g_userinfo.c \
-       g_opm.c \
-       g_scan.c \
-	g_die.c \
-	g_bl.c \
-	g_log.c \
-	g_access.c \
-	g_update.c \
-	g_opers.c \
-	g_modlist.c \
-	g_modload.c \
-	g_modreload.c \
-	g_modunload.c \
-	g_watch.c \
-	g_sessions.c \
-	g_debug.c
+SRCS = #g_core.c \
+#   g_joinflood.c \
+#   g_userinfo.c \
+#   g_opm.c \
+#   g_scan.c \
+#	g_die.c \
+#	g_bl.c \
+#	g_log.c \
+#	g_access.c \
+#	g_update.c \
+#	g_opers.c \
+#	g_modlist.c \
+#	g_modload.c \
+#	g_modreload.c \
+#	g_modunload.c \
+#	g_watch.c \
+#	g_sessions.c \
+#	g_debug.c
 
 SH_OBJS	= ${SRCS:.c=.so}
 S_OBJS	= ${SRCS:.c=.o}

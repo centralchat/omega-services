@@ -1,33 +1,11 @@
-/*
- *         	  OMEGA IRC SECURITY SERVICES
- * 	      	    (C) 2008-2012 Omega Dev Team
- *
- *   See file AUTHORS in IRC package for additional names of
- *   the programmers.
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 1, or (at your option)
- *   any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- *
- *    $Id: module.c 2394 2012-06-30 15:56:22Z twitch $
- */
-
-#include "stdinc.h"
-#include "server.h"
+#include "setup.h"
+#include "stdinclude.h"
+#include "appinclude.h"
 
 int mod_event_rehash(int, void*);
 int mod_event_shutdown(int, void*);
+
+
 
 /*****************************************/
 /**
@@ -41,11 +19,11 @@ int mod_event_shutdown(int, void*);
  */
 
 
-char *GetModErr(int status)
+char * GetModErr(int status)
 {
 
 
-if (status <= 0)
+	if (status <= 0)
 	{
 		switch (status)
 		{
@@ -85,11 +63,28 @@ if (status <= 0)
 
 }
 
+char * mod_type_string(int mod_type) 
+{
+	int type = mod_type <= 0 ? 0 : mod_type;
+	const char * mod_type_strings[] = {
+		"Unknown",
+		"Core",
+		"SocketEngine",
+		"3rd Party",
+		"Database"
+	};
+
+	if (mod_type_strings[type])
+		return (char*) mod_type_strings[type];
+	else
+		return (char*) mod_type_strings[0];
+}
+
 
 /*****************************************/
 
 
-void init_modules() 
+void modules_init() 
 {
     /*
      * Load modules, clients, and db's
@@ -98,64 +93,25 @@ void init_modules()
 	if (debug > 0)
 		printf("\nRequired Module API: %d.%d.x [\033[1;32m%d\033[0m]\n\n", API_MAJOR, API_MINOR, API_VERSION);
 
-    if (!load_protocol())
-        exit(0);
-		
-	if (!load_modules())
-		return;
+	// if (!load_modules())
+	// 	return;
 		
 	run_mod_que(MOD_LOAD_PRE);
 	run_mod_que(MOD_LOAD_STD);
     run_mod_que(MOD_LOAD_POST);
 
-	AddEvent("SHUTDOWN", mod_event_shutdown);
-	AddEvent("REHASH", mod_event_rehash);
-	
 	return;
 }
 
-/*****************************************/
-/**
- * load_protocol() - Load our given protocol
- *                   if it fails toss a critical
- *                   error and return
- *  @return bool
- *              true  - Module has loaded successfully
- *              false - Module failed to load see logs
- *
- */
-
-
-int load_protocol()
-{
-    int status = 0;
-	char *ce;
-	
-	if (!(ce = (char *)get_config_entry("protocol", "name")))
-			return 0;
-			
-	strlcpy(CfgSettings.protocol,ce,sizeof(CfgSettings.protocol));
-	
-        status = module_open(CfgSettings.protocol, MOD_TYPE_PROTOCOL);
-
-	if ((status!= 0 && status != 12))
-	{
-       		sendto_console("FATAL: %s \033[1;34m %s \033[0m",CfgSettings.protocol, GetModErr(status));
-		alog(LOG_FATAL,"Protocol Error: [%s] %s",CfgSettings.protocol, GetModErr(status));
-		return 0;
-	}
-
-    return 1;
-
-}
 /*******************************************************/
 int module_loaddir(char *dir, int order) {
 	DIR *dp;
-        struct dirent *ep;
+    
+    struct dirent *ep;
 	char path[PATH_MAX];
 	Module* m;
 	
-	snprintf(path, PATH_MAX, "%s/%s", MPATH, dir);
+	snprintf(path, PATH_MAX, "%s/", dir);
 	alog(LOG_MODULE, "Loading directory path: %s (Priority: %d)", path, order);
 	if (!(dp = opendir(path)))
 		return 0;
@@ -202,46 +158,9 @@ int load_modules()
 	
 	int status = 0;
 
-	if (!(dp = opendir(CPATH)))
-		return -1;
-		
-	if (!skip_banner)      
-		fprintf(stderr,"\nLoading core modules ");
-
-	while ((ep = readdir (dp))) {
-		m = NULL;
-		
-		status = 0;
-		
-		if (*ep->d_name == '.')
-			continue;
-
-		if ((m = module_find(ep->d_name)))
-			continue;
-			
-		
-			switch ((status = module_open(ep->d_name, MOD_TYPE_CORE)))
-			{
-					case MOD_ERR_OK:	
-							if ((sync_state != RUNNING) && (!skip_banner)) {
-								fprintf(stderr,"\033[1;34m|\033[0m ");
-							} 
-							break;
-					default:
-							fprintf(stderr,"[\033[1;34mFailed\033[0m]\n");
-							alog(LOG_FATAL, "Unable to load core module %s (%s)", ep->d_name, GetModErr(status));
-							Exit(1);
-							break;
-			}
-			alog(LOG_MODULE, "Loading module %s [%s]", ep->d_name, GetModErr(status));	
-	}
 	
-	if ((sync_state != RUNNING) && (!skip_banner)) {
-		fprintf(stderr," [\033[1;32mDone\033[0m]\n\n");
-		fprintf(stderr,"Loading modules: \n");
-	}
 
-        module_loaddir("", MOD_LOAD_PRE);
+    module_loaddir("", MOD_LOAD_PRE);
 	if (nomodules) {
 		fprintf(stderr,"[\033[1;34mNote\033[0m] Services were started in skeleton mode. Non-core modules will not be loaded.\n");			
 		return 1;			
@@ -255,49 +174,50 @@ int load_modules()
 	DLINK_FOREACH(tdl, config_info->head)
 	{
 			
-			cb = tdl->data;
-		 	order = MOD_LOAD_STD;	
-			switch (cb->map[oindex][0])
-			{
-					case 'p':
-						if (strcasecmp(cb->map[oindex], "POST")==0) 
-							order = MOD_LOAD_POST;
-						else
-							order = MOD_LOAD_PRE;
-						break;
-					
-			}
-			
-			if (cb->map[dindex][0]) {
-					module_loaddir(cb->map[dindex], order);
-					continue;
-			}
-			if (cb->map[index][0]) {
-		  		tmp = cb->map[index];
-                                if (!strchr(tmp, ' '))
-                                        addto_mod_que(tmp,MOD_ACT_LOAD, order);
-               			memset(m_tmp, '\0', sizeof(m_tmp));
-				alog(LOG_DEBUG3, "Parsing module string: [%s]", tmp);
-                                while (*tmp)
-                             	{
+		cb = tdl->data;
+	 	order = MOD_LOAD_STD;	
+		switch (cb->map[oindex][0])
+		{
+				case 'p':
+					if (strcasecmp(cb->map[oindex], "POST")==0) 
+						order = MOD_LOAD_POST;
+					else
+						order = MOD_LOAD_PRE;
+					break;
 				
-					while (*tmp == ' ')
-						tmp++;
-					
-					start = tmp;		
-					while ((*tmp != ',') && (*tmp)) {
-						if (*tmp == ' ')
-							break;
-						tmp++;
-					}
-					strncpy(m_tmp, start, tmp - start);
-                                        addto_mod_que(m_tmp, MOD_ACT_LOAD, order);   
-					alog(LOG_DEBUG3, "Parsing out module: %s", m_tmp);           
-                                	memset(m_tmp, '\0', sizeof(m_tmp));  
-					tmp++;  	
-				}	
-			}
-                   }
+		}
+		
+		if (cb->map[dindex][0]) {
+				module_loaddir(cb->map[dindex], order);
+				continue;
+		}
+		if (cb->map[index][0]) {
+	  		tmp = cb->map[index];
+            if (!strchr(tmp, ' '))
+	            addto_mod_que(tmp,MOD_ACT_LOAD, order);
+    
+           	memset(m_tmp, '\0', sizeof(m_tmp));
+			alog(LOG_DEBUG3, "Parsing module string: [%s]", tmp);
+        	while (*tmp)
+         	{
+			
+				while (*tmp == ' ')
+					tmp++;
+				
+				start = tmp;		
+				while ((*tmp != ',') && (*tmp)) {
+					if (*tmp == ' ')
+						break;
+					tmp++;
+				}
+				strncpy(m_tmp, start, tmp - start);
+                addto_mod_que(m_tmp, MOD_ACT_LOAD, order);   
+				alog(LOG_DEBUG3, "Parsing out module: %s", m_tmp);           
+                memset(m_tmp, '\0', sizeof(m_tmp));  
+				tmp++;  	
+			}	
+		}
+    }
 	return 1;
 }
 
@@ -326,14 +246,14 @@ char *create_mod_temp(char *file)
 	memset(input, 0, MAXPATH);
 	memset(buffer, 0,  MAXREADBUFFER);
 	//snprintf should return the length of written string.	  
-	len = snprintf(output,MAXPATH,"%s/%s", TMP_DIR, (CfgSettings.network)? CfgSettings.network : "misconfigured");
+	len = snprintf(output,MAXPATH,"%s/", TMP_DIR);
 	  
 	if (!(dp = opendir(output)))
 		mkdir(output, S_IRWXO | S_IRWXG | S_IRWXU);
 	
-	len = strlcat(output,"/TMP_", MAXPATH - len);
-	len = strlcat(output,file,MAXPATH - len);
-	len = strlcat(output,"XXXXXX",MAXPATH - len);
+	strncat(output,"/TMP_", MAXPATH - len);
+	strncat(output,file,MAXPATH - len);
+	strncat(output,"XXXXXX",MAXPATH - len);
 	
 	format_filename(input,file); 
 	
@@ -343,19 +263,21 @@ char *create_mod_temp(char *file)
 	}
 	if ((fd = mkstemp(output)) == -1) //since mktemp is depreciated for portability use mkstemp
 	{
-		printf("Make tmp failed - %s\n", strerror (errno));
+		log_message(LOG_ERROR, "Make tmp failed - %s\n", strerror (errno));
 		return NULL;
 	}
 		
 	if (!(trg = fdopen(fd, "w"))) {
-	      alog(LOG_ERROR, "Unable to open tempfile [%s] for writing", output);
+	      log_message(LOG_ERROR, "Unable to open tempfile [%s] for writing", output);
      	  return NULL;
     }
 
+    log_message(LOG_DEBUG, "Attempting to open: %s", input);
 	if (!(src = fopen(input,"r"))) {
-	    alog(LOG_ERROR, "Unable to open module file [%s] for reading", file);
+	    log_message(LOG_ERROR, "Unable to open module file [%s] for reading", file);
     	return NULL;
     }
+
 	//write and read as much as possible at a given time.
 	while (!feof(src)) {
 		unused = fread(buffer, 1, MAXREADBUFFER - 1, src);
@@ -378,10 +300,11 @@ char *create_mod_temp(char *file)
   * @param type  Type of module we are loading.
   *              - 0 MOD_TYPE_UNKNOWN Unknown module type it was either loaded
   *                after or manually.
-  *              - 1 MOD_TYPE_PROTOCOL
+  *              - 1 MOD_TYPE_SOCKETENGINE
   *              - 2 MOD_TYPE_CORE
   *              - 3 MOD_TYPE_STD
   *              - 4 MOD_TYPE_CLIENT
+  *              - 5 MOD_TYPE_DB
   *
   * @return int
   *  - 0 = MOD_ERR_OK   Loading is successful no error.
@@ -422,7 +345,6 @@ int module_open(char *filename, int type)
 
 	int mod_status = MOD_ERR_API;
 
-	
    /*
     * Initialize the structures
     */
@@ -455,15 +377,8 @@ int module_open(char *filename, int type)
 			dlclose(m->handle);
             throwModErr("%s",dlerror());
     }
-	//check for version
-	if ((m->mi->api < API_VERSION) || (m->mi->api > (API_VERSION+100))) {
-		cur_api = m->mi->api;
-		module_free(m);
-		dlclose(m->handle);
-		throwModErr("Module Error, module does not support current API [Module: %d][Required: %d]", (int)cur_api, API_VERSION); 
-	}
-	
- 	/*
+
+   /*
     * Now all the symbols that we need are loaded,
 	* are within version tolerances, and
 	* placed into the module structure; Run
@@ -488,6 +403,10 @@ int module_open(char *filename, int type)
     m->type = type;
     dl = dlink_create();
     dlink_add_tail (m, dl, &modules);
+
+    log_message(LOG_MODULE, "Module loaded [%s] type [%s]", 
+    	m->name, mod_type_string(m->type));
+
     return MOD_ERR_OK;
 }
 
@@ -513,42 +432,16 @@ char *find_module_dir(char *module)
 {
 	char path[255];
 
-	snprintf(path,sizeof(path),"%s/%s",PPATH,module);
+	snprintf(path,sizeof(path),"%s/%s",MODULE_DIR,module);
 
 	if (module_exists(path))
-		return PPATH;
+		return MODULE_DIR;
 
-	memset(path,0,sizeof(path));
-
-	snprintf(path,sizeof(path),"%s/%s",CPATH,module);
-
+	snprintf(path,sizeof(path),"%s/%s",MOD_SOCKET_PATH, module);
 	if (module_exists(path))
-		return CPATH;
+		return MOD_SOCKET_PATH;
 
-	memset(path,0,sizeof(path));
-
-	snprintf(path,sizeof(path),"%s/%s", CLIENT_MOD_DIR, module);
-
-	if (module_exists(path))
-		return CLIENT_MOD_DIR;
-
-	memset(path,0,sizeof(path));
-
-	snprintf(path,sizeof(path),"%s/%s",CONTRIB_PATH,module);
-
-	if (module_exists(path))
-		return CONTRIB_PATH;
-
-	memset(path,0,sizeof(path));
-
-	snprintf(path,sizeof(path),"%s/%s",DBPATH,module);
-
-	if (module_exists(path))
-		return DBPATH;
-
-	memset(path,0,sizeof(path));
-	
-	return MPATH; //return MPATH no matter what as our module_open will just shoot out module doesn't exists
+	return MODULE_DIR; //return MODULE_DIR no matter what as our module_open will just shoot out module doesn't exists
 
 }
 
@@ -567,7 +460,7 @@ void module_free(Module *m)
 
 	if (m->file) {
 		if (module_exists (m->file))
-				unlink(m->file);
+			unlink(m->file);
 				
 		free(m->file);
 	}
@@ -578,31 +471,41 @@ void module_free(Module *m)
 
 
 /*****************************************/
+/**
+ * Remove a module, running its unregister
+ * handler, and remove it from module list
+ * TODO: Make this thread safe, check for locks
+ */
 
-int module_close(char *filename)
+int __module_close(Module * module)
 {
-    Module* module;
-    dlink_node *dl;
-
-    if (!(module = module_find(filename)))
-            return MOD_ERR_NOFILE;
-
+   
     if (module->mi->mod_unregister) {
         module->mi->mod_unregister();
     } else {
 		return MOD_ERR_UNLOAD;
     }
 
-    alog(LOG_MODULE,"Unloading module: %s",filename);
+    log_message(LOG_MODULE,"Unloading module: %s",module->name);
 
     dlclose(module->handle);
     module_free(module);
 
     return MOD_ERR_OK;
 }
+
 /*****************************************/
 
-Module* module_find(char *filename)
+int module_close(char *filename)
+{
+    Module* module;
+    if (!(module = module_find(filename)))
+        return MOD_ERR_NOFILE;
+   return __module_close(module);
+}
+/*****************************************/
+
+Module * module_find(char *filename)
 {
     dlink_node* dl;
     Module* m;
@@ -618,7 +521,7 @@ Module* module_find(char *filename)
         m = dl->data;
         
 		if (strcasecmp(m->name,tmp)==0)
-						return m;
+			return m;
     }
 
     return NULL;
@@ -626,7 +529,7 @@ Module* module_find(char *filename)
 
 /*****************************************/
 
-void purge_modules()
+void modules_purge()
 {
 
     dlink_node *dl,*tdl;
@@ -634,33 +537,28 @@ void purge_modules()
 
 	DLINK_FOREACH_SAFE (dl,tdl, modules.head)
 	{
-			module = dl->data;				
-            if (module->type == MOD_TYPE_PROTOCOL)
-					continue;
-					
-			if (module->mi->mod_unregister) 
-					module->mi->mod_unregister();
-			
-			dlclose(module->handle);
-			module_free(module);
+		module = dl->data;	
+
+        if (module->type == MOD_TYPE_SOCKET)
+			continue;
+		if (module->type == MOD_TYPE_DB)
+			continue;
+				
+		__module_close(module); //result here is that the module is completely gone.
+								//and remove from our list.
 	}
 	
-	/* make sure we purge protocol module last - this 
+	/* make sure we purge socketnegine/database module last - this 
 	 * looks like were looping twice but there should
-	 * only be one entry in the list at this point
+	 * only be one/two entries in the list at this point
 	 */
 	DLINK_FOREACH_SAFE (dl,tdl, modules.head)
 	{
-			module = dl->data;								
-			if (module->mi->mod_unregister) 
-					module->mi->mod_unregister();
-			
-			dlclose(module->handle);
-			module_free(module);
+		module = dl->data;								
+		__module_close(module);	
 	}
-	
-
 }
+
 /********************************************/
 /**
  **      Module Que Operations
@@ -682,23 +580,21 @@ ModuleQEntry *find_mod_que(char *file)
  }
 
  
-int addto_mod_que(char *file,int op, int load)
+int addto_mod_que_ext(char *file,int type, int act, int order)
 {
 
 	dlink_node *dl;
 	ModuleQEntry *mq;
-	
-	//if ((mq = find_mod_que(file)))
-	//return MOD_ERR_EXISTS;
-	
+
 	if (!(mq = (ModuleQEntry*) malloc(sizeof(ModuleQEntry))))
 		return MOD_ERR_MEMORY;
 	
 	
 	strlcpy(mq->name,file,sizeof(mq->name));
 	
-	mq->action = op;
-	mq->load = load;
+	mq->type   = type;
+	mq->action = act;
+	mq->load   = order;
 	
 	dl = dlink_create();
 	dlink_add_tail(mq,dl,&moduleque);
@@ -727,13 +623,10 @@ int run_mod_que(int load)
 				if ((module_find(mq->name)))
 						break;
 					
-				status = module_open(mq->name, MOD_TYPE_UNKNOWN);
+				status = module_open(mq->name, mq->type);
 
-				alog(LOG_MODULE,"Loading module %s [%s]",mq->name,GetModErr(status));
-				if ((sync_state != RUNNING) && (!skip_banner)) {							
-					printf(" * Loading: \033[1;32m %s%s \033[0m \033[1;34m %s \033[0m \n", 
-							mq->name, (strstr(mq->name, ".so"))? "" : ".so", (status != 0)? GetModErr(status) : "");
-				}	
+				log_message(LOG_MODULE,"Loading module %s [%s]",mq->name,GetModErr(status));
+
 				//we have an unmet dependency, try to load it next time around. if we are on MOD_LOAD_POST then fail it completely.
 				if ((mq->load != MOD_LOAD_POST) && (status == MOD_ERR_DEPENDENCY)) {
 						mq->load += 1;
@@ -747,7 +640,7 @@ int run_mod_que(int load)
 				break;
 			case MOD_ACT_RELOAD:
 				if ((status = module_close(mq->name)) == 0)
-					status = module_open(mq->name, MOD_TYPE_UNKNOWN);
+					status = module_open(mq->name, mq->type);
 							
 				alog(LOG_MODULE,"Reloading module %s [%s]",mq->name,GetModErr(status));
 				break;
@@ -774,7 +667,7 @@ cont:
  
 int mod_event_shutdown(int ac, void* args)
 {
-	purge_modules();
+	modules_purge();
 	return 0;
 }
 

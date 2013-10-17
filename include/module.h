@@ -1,28 +1,3 @@
-/*
- *         	  OMEGA IRC SECURITY SERVICES
- * 	      	    (C) 2008-2012 Omega Dev Team
- *
- *   See file AUTHORS in IRC package for additional names of
- *   the programmers.
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 1, or (at your option)
- *   any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- *
- *    $Id: module.h 2257M 2013-07-06 21:17:41Z (local) $
- */
-
 #ifndef __MODULE_H__
 #define __MODULE_H__
 
@@ -51,6 +26,8 @@
 #define MOD_ERR_DEPENDENCY 15
 
 
+#define MOD_SOCKET_PATH MODULE_DIR "/socketengine/"
+
 
 //Quick reference module errors... designed for ease of use.
 #define MOD_CONT MOD_ERR_OK
@@ -60,15 +37,14 @@
 #define MOD_MEMORY MOD_ERR_MEMORY
 
 enum ModTypes {
-  MOD_TYPE_START,
-	MOD_TYPE_UNKNOWN, MOD_TYPE_PROTOCOL,
-	MOD_TYPE_CORE, MOD_TYPE_3RD,
-	MOD_TYPE_DB,
-   MOD_TYPE_END
+    MOD_TYPE_UNKNOWN, 
+    MOD_TYPE_CORE,
+    MOD_TYPE_SOCKET,
+    MOD_TYPE_3RD,
+    MOD_TYPE_DB
 };
 
 char mod_err_msg[512];
-
 
 #define module_dependency(mod) \
 	if (!(module_find(mod))) \
@@ -103,8 +79,8 @@ char mod_err_msg[512];
 #define API_MINOR  6
 #define API_PATCH  7
 
-#define API_VERSION ((MOD_API_MAJOR * 1000) + (MOD_API_MINOR * 100))
-#define API_VERSION_FULL ((MOD_API_MAJOR * 1000) + (MOD_API_MINOR * 100) + MOD_API_PATH)
+#define API_VERSION ((API_MAJOR * 1000) + (API_MINOR * 100))
+#define API_VERSION_FULL ((API_MAJOR * 1000) + (API_MINOR * 100) + API_PATCH)
 
 #define MODULE_API(maj,min,patch) ((maj * 1000) + (min * 100) + patch)
 
@@ -253,6 +229,7 @@ typedef struct moduleq_entry {
 	char name[256];
 	int action;
 	int load;
+  int type;
 } ModuleQEntry;
 
 /***********************************/
@@ -274,16 +251,20 @@ int load_modules();
 
 /*************************************/
 
-void 	init_modules ();
-void 	purge_modules();
+void 	modules_init ();
+void 	modules_purge();
 
 int     module_open   (char *, int);
 Module* module_find   (char *);
 int     module_exists (char *);
 void    module_free   (Module *);
-int 	module_close  (char *);
-int		module_loaddir(char *, int);
 
+int 	  module_close  (char *);
+int    __module_close (Module *);
+
+int		  module_loaddir(char *, int);
+
+char *  mod_type_string(int); 
 
 char *find_module_dir(char *module);
 char *create_mod_temp(char *);
@@ -294,8 +275,22 @@ char *create_mod_temp(char *);
  */
 
 ModuleQEntry* find_mod_que(char *);
-int addto_mod_que(char *, int, int);
+
+int addto_mod_que_ext(char *, int, int, int);
 int run_mod_que(int);
+
+#define addto_mod_que(name, act, ord) \
+  addto_mod_que_ext((name), MOD_TYPE_UNKNOWN, (act), (ord))
+
+//Api to wrap the module que in a sensible mannor
+#define mq_load_module(name, type) \
+  addto_mod_que_ext(name, type, MOD_ACT_LOAD, MOD_LOAD_STD)
+#define mq_reload_module(name, type) \
+  addto_mod_que_ext(name, type, MOD_ACT_RELOAD, MOD_LOAD_STD)
+#define mq_reload_unmodule(name) \
+  addto_mod_que_ext(name, MOD_TYPE_UNKNOWN, MOD_ACT_UNLOAD, MOD_LOAD_STD)
+
+
 
 /************************************/
 /**

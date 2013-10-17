@@ -17,7 +17,7 @@ moduledir		= @moduledir@
 
 SUBDIRS			= db protocol client core
 
-SRCS = @OSTATSMOD@
+SRCS =
 
 MOD_BASE = mod_base.c
 
@@ -32,7 +32,7 @@ libmodules.a: $(S_OBJS)
 	@$(RM) -f $@
 	@$(AR) r $@ $(S_OBJS) 2>/dev/null
 
-all: libmodules.a $(SH_OBJS)
+all: #libmodules.a $(SH_OBJS)
 	@for i in $(SUBDIRS); do \
 		echo "build ==> modules/$$i"; \
 		cd $$i; \
