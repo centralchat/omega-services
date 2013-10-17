@@ -30,4 +30,5 @@ libopm/*
 include/setup.h
 include/version.h
 contrib/Makefile.sub
+autom4te.cache
 

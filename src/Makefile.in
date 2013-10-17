@@ -65,37 +65,36 @@ SRCS  =          \
 OBJS = ${SRCS:.c=.o}
 
 security: run_subdirs $(OBJS)
-  @${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${OBJS} ${LIBS} ${MYSQL}
-  @echo "[LD] $@"
+	@${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${OBJS} ${LIBS} ${MYSQL}
+	@echo "[LD] $@"
 
 run_subdirs:
-  @for i in $(SUBDIRS); do \
-    echo "build ==> src/$$i"; \
-    cd   $$i; \
-    ${MAKE} build || exit 1; cd   ..; \
-  done
+	@for i in $(SUBDIRS); do \
+		echo "build ==> src/$$i"; \
+		cd   $$i; \
+		${MAKE} build || exit 1; cd   ..; \
+	done
   
 install: install-mkdir
-  @for i in $(SUBDIRS); do \
-    echo "install ==> src/$$i"; \
-    cd   $$i; \
-    ${MAKE} install || exit 1; cd   ..; \
-  done
-  @$(INSTALL_BIN) security $(DESTDIR)$(bindir)
-
+	@for i in $(SUBDIRS); do \
+		echo "install ==> src/$$i"; \
+		cd   $$i; \
+		${MAKE} install || exit 1; cd   ..; \
+	done
+	@$(INSTALL_BIN) security $(DESTDIR)$(bindir)
 
 install-mkdir:
 
 clean:
-  @for i in $(SUBDIRS); do \
-    echo "build ==> src/$$i"; \
-    cd   $$i; \
-    ${MAKE} clean || exit 1; cd   ..; \
-  done
-  @${RM} -f *.o security *~ security.core *.core
+	@for i in $(SUBDIRS); do \
+		echo "build ==> src/$$i"; \
+		cd   $$i; \
+		${MAKE} clean || exit 1; cd   ..; \
+	done
+	@${RM} -f *.o security *~ security.core *.core
 
 header-guard:
-  @${RM} -f *.h
+	@${RM} -f *.h
 
 
 distclean: clean
