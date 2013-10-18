@@ -33,30 +33,35 @@ static unsigned long curday = 0;
 
 int log_open() 
 {
-  char    timestamp[32];
+  // char    timestamp[32];
 
-  time_t      t;
-  struct tm   *tmp;
+  // time_t      t;
+  // struct tm   *tmp = NULL;
 
-  time (&t);
-  tmp = localtime (&t);
+  // memset(&t, 0, sizeof(time_t));
 
-  if (logfd)
-  {
-      if (tmp->tm_mday == curday)
-        return 1;
-      else
-        log_close();
-  }
+  // time (&t);
+  // tmp = localtime (&t);
+  // if (logfd)
+  // {
+  //     if (tmp->tm_mday == curday)
+  //       return 1;
+  //     else
+  //       log_close();
+  // }
 
   memset(log_name, '\0', sizeof(log_name));
 
-  snprintf (log_name, sizeof(log_name), "%s/%d%d%d.log",
-    LOG_DIR, (tmp->tm_year + 1900), (tmp->tm_mon + 1), tmp->tm_mday);
+  // snprintf (log_name, sizeof(log_name), "%s/%d%d%d.log",
+  //   LOG_DIR, (tmp->tm_year + 1900), (tmp->tm_mon + 1), tmp->tm_mday);
+  snprintf (log_name, sizeof(log_name), "%s/%s.log",
+    LOG_DIR, "security");
 
-  fprintf (stderr, "Opening log file: %s\n", log_name);
-  curday  = tmp->tm_mday;
-  logfd   = fopen (log_name, "a");
+  // fprintf (stderr, "Opening log file: %s\n", log_name);
+  // curday  = tmp->tm_mday;
+  if (!logfd)
+    logfd   = fopen (log_name, "a");
+  
   if (!logfd)
   {
     fprintf (stderr, "Warning: Could not open logfile (%s): %s\n", log_name, strerror(errno));
@@ -87,7 +92,7 @@ void __attribute__((format(printf, 5, 0))) log_message
   //TODO: Make this memory dynamic alloc
   char message[8129];
   memset(message, 0, 8129);
-  
+
   va_list ap;
 
   switch (level) 
@@ -112,11 +117,11 @@ void __attribute__((format(printf, 5, 0))) log_message
   vsnprintf(message,sizeof(message), fmt, ap);
   //Console logging
   if (core.nofork)
-    fprintf(stderr, "[%s] %s %s: %s\n", log_type_str[level], file,
-      function, message);    
+    fprintf(stderr, "[%s] %s %s(%d): %s\n", log_type_str[level], file,
+      function, line, message);    
 
-  fprintf(logfd, "[%s] %s %s: %s\n", log_type_str[level], file,
-      function, message);  
+  fprintf(logfd, "[%s] %s %s(%d): %s\n", log_type_str[level], file,
+      function, line, message);  
 
   fflush(logfd);
   va_end(ap);

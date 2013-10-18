@@ -53,12 +53,14 @@ struct _core {
 int debug;
 
 E int sync_state;
-E void core_init        (void);
-E void core_run         (void);
-E void core_exit        (int);
-E void core_cleanup     (void);
-E void core_once_around (void);
-E void core_parse_opts  (int, char **, char **);
-E int core_reload       (void);
+E void core_init          (void);
+E void core_run           (void);
+E void core_exit          (int);
+E void core_cleanup       (void);
+E void core_once_around   (void);
+E void core_parse_opts    (int, char **, char **);
+E int  core_reload        (void);
+E int  core_connect_uplink(void);
+
 
 #endif

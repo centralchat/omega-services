@@ -12,6 +12,9 @@ static int  recvbytes       = 0;
 
 void socket_empty_callback() { return; }
 
+/************************************************************/
+
+
 //I say we require a descriptor prior to adding to the list.
 Socket * socket_new(int sd) 
 {
@@ -31,6 +34,7 @@ Socket * socket_new(int sd)
 	return tmp;
 }
 
+/************************************************************/
 
 void socket_free(Socket * s)
 {
@@ -47,25 +51,29 @@ void socket_free(Socket * s)
     }    
 
     socket_delfrom_list(s);
-
     
 	s->sd = -1;
     s->flags |= SOCK_DEAD;
     s->error_callback = NULL;
     free(s);
+    s = NULL;
 }
+
+/************************************************************/
 
 Socket * socket_find_by_sd(int sd)
 {
 
 }
 
+/************************************************************/
 
 Socket * socket_find_by_name(char * name)
 {
 
 }
 
+/************************************************************/
 
 int socket_addto_list(Socket * s)
 {
@@ -76,15 +84,19 @@ int socket_addto_list(Socket * s)
 	return TRUE;
 }
 
+/************************************************************/
+
 int socket_delfrom_list(Socket * s)
 {
 	dlink_node * dl = NULL;
-	DLINK_REMOVE(s, dl, sockets);
-	// if (!(dl = dlink_find_delete(s, &sockets)))
-	// 	return FALSE;
-	// dlink_free(dl);
+	
+	if (!(dl = dlink_find_delete(s, &sockets)))
+		return FALSE;
+	dlink_free(dl);
 	return TRUE;
 }
+
+/************************************************************/
 
 void socket_purge_all() 
 {
@@ -101,12 +113,18 @@ void socket_purge_all()
 		 	shutdown(s->sd,  2);
 		close(s->sd);
 
+		dlink_delete(dl, &sockets);
 		socket_free(s);
+		
+
+		dlink_free(dl);
 		count++;
 	}
 	unlock_object(sockets);
 	log_message(LOG_DEBUG3, "Purge (%d) sockets", count);
 }
+
+/************************************************************/
 
 void socket_purge_dead() 
 {
@@ -119,16 +137,20 @@ void socket_purge_dead()
 	DLINK_FOREACH_SAFE(dl, tdl, sockets.head) 
 	{
 		s = dl->data;
-		if (socket_is_dead(s)) {
+		if (socket_is_dead(s)) 
+		{
 			socket_free(s);
 			count++;
 		}
+		dlink_delete(dl, &sockets);
+		dlink_free(dl);
 
 	}
 	unlock_object(sockets);
 	log_message(LOG_DEBUG3, "Purge (%d) dead sockets", count);
 }
 
+/************************************************************/
 
 int socket_write(Socket * s, char * fmt, ...)
 {
@@ -208,7 +230,7 @@ static char _socket_getbyte (Socket *s)
 
 int socket_read(Socket * s)
 {
-	char	message[MAXLEN + 1];
+	char			message[MAXLEN + 1];
 	int				i;
 	char			c;
 	MessageBuffer	*m;
@@ -216,10 +238,13 @@ int socket_read(Socket * s)
 
 	i = 0;
 
+	memset(message, 0, MAXLEN + 1);
+
+
 	if (s->buffer[0] != '\0')
 	{
         alog (LOG_DEBUG2, "IO: %s buffer: %s", s->name, s->buffer);
-		strlcpy (message, s->buffer, (MAXLEN + 1));
+		strlcpy (message, s->buffer, MAXLEN);
 		i = strlen(message);
 		message[i] = '\0';
 		s->buffer[0] = '\0';
@@ -240,7 +265,7 @@ int socket_read(Socket * s)
 			if (i > 0)
 			{
 				message[i] = '\0';
-				strlcpy (s->buffer, message, MAXLEN + 1);
+				strlcpy (s->buffer, message, MAXLEN);
                 break;
                 //continue;
 			}
@@ -252,10 +277,15 @@ int socket_read(Socket * s)
 			if (i > 0)
 			{
 				message[i] = '\0';
-				dl	= dlink_create ();
-				m	= (MessageBuffer *) calloc (1, sizeof(MessageBuffer));
-				memset (m->message, '\0', sizeof(m->message));
-				strlcpy (m->message, message, sizeof(m->message));
+				dl	=   dlink_create ();
+				m	=   (MessageBuffer *) calloc (1, sizeof(MessageBuffer));
+
+				m->message = calloc(1, (sizeof(char) * strlen(message)+2));
+				
+				// memset  (m->message, '\0', sizeof(m->message));
+				strlcpy (m->message, message, sizeof(message));
+				log_message(LOG_DEBUG3, "Logging stuff %s", m->message);	
+
 				s->lines++;
 				dlink_add_tail (m, dl, &s->msg_buffer);
 				i = 0;
@@ -267,3 +297,6 @@ int socket_read(Socket * s)
 	}
 	return 0;
 }
+
+/************************************************************/
+
