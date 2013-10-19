@@ -5,6 +5,7 @@
 
 #define MAXHOST 255
 #define MAXPATH 255
+#define MAXFUNC 64
 #define MAXPASS 255
 #define MAXUSER 100
 
@@ -36,6 +37,7 @@
 #include "socket.h"
 #include "core.h"
 #include "socketengine.h"
+#include "event.h"
 
 
 
