@@ -16,7 +16,8 @@ const char * log_type_str[] = {
 	"MODULE",
 	"CONFIG",
 	"DATABASE",
-  "SOCKET"
+  "SOCKET",
+  "EVENT"
 };
 
 

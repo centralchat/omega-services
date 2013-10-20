@@ -19,47 +19,21 @@ build: all
 SUBDIRS = socketengine
 
 SRCS  =          \
-  core.c           \
+  core.c         \
   config.c       \
-  configparser.c   \
+  configparser.c \
   dlink.c      \
   main.c       \
   database.c   \
   module.c           \
   tools.c            \
+  event.c            \
   logger.c              \
   socketengine.c        \
   sighandler.c          \
   socket.c              \
   memory.c              \
   thread.c
-
-#SRCS	=	     \
-#  base64.c	     \
-#  access.c           \
-#  config.c	     \
-#  configparse.c	     \
-#  dlink.c	     \
-#  eventhandler.c     \
-#  main.c	     \
-#  protocol.c	     \
-#  socketengine.c     \
-#  dbmanager.c     \
-#  irc_string.c       \
-#  parser.c           \
-#  module.c           \
-#  tools.c            \
-#  log.c              \
-#  sig.c              \
-#  channel.c          \
-#  match.c            \
-#  cmds.c             \
-#  threads.c	 \
-#  links.c		\
-#  metadata.c	\
-#  send.c		\
-#  core.c		\
-#  user.c 
 
 OBJS = ${SRCS:.c=.o}
 

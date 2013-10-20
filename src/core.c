@@ -79,6 +79,7 @@ void core_init() {
 
     //Initialize our signal handler
     sighandler_init();
+    event_init();
 
     atexit(core_cleanup);
 
@@ -119,6 +120,8 @@ int core_connect_uplink()
 
 void core_run(void) { 
     int ret    = 0;
+    
+    event_dispatch("STARTUP", NULL);
 
     se_startup();
 

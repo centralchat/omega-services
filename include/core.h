@@ -14,6 +14,12 @@ enum SYNC_STATES {
 
 #define ENDBLOCK "\r\n\r\n"
 
+#define INFO_ATTRIBUTES \
+	char file[MAXPATH]; \
+	char func[MAXFUNC]; \
+	int  lineno
+
+
 /********************************/
 /**
  *       Core/Config info

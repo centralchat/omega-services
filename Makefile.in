@@ -1,13 +1,13 @@
-prefix        = @prefix@
+prefix      = @prefix@
 exec_prefix	= @exec_prefix@
 bindir		= @bindir@
 moduledir	= @moduledir@
-confdir	= @confdir@
+confdir	    = @confdir@
 logdir		= @logdir@
 datarootdir	= @datarootdir@
-coredir       = @coredir@
+coredir     = @coredir@
 dbdir		= @dbdir@
-RM	       = @RM@
+RM	        = @RM@
 
 SUBDIRS		= libopm src modules docs tools #contrib
 

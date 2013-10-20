@@ -29,6 +29,7 @@ void log_message(int level, const char *file, int line, const char *function, co
 #define _LOG_CONFIG   10
 #define _LOG_DATABASE 11
 #define _LOG_SOCKET   12
+#define _LOG_EVENT    13
 
 #define LOG_INFO     _LOG_INFO    , _A_
 #define LOG_WARNING  _LOG_WARNING , _A_
@@ -43,6 +44,7 @@ void log_message(int level, const char *file, int line, const char *function, co
 #define LOG_CONFIG   _LOG_CONFIG  , _A_
 #define LOG_DATABASE _LOG_DATABASE, _A_
 #define LOG_SOCKET   _LOG_SOCKET  , _A_
+#define LOG_EVENT    _LOG_EVENT   , _A_
 
 
 E int  log_open();
