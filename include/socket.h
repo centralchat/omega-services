@@ -68,7 +68,7 @@ typedef struct socket_
 
 	dlink_list	msg_buffer;
 	//Callbacks
-	void	(*read_callback)  (struct socket_ *, int);
+	void	(*read_callback)  (struct socket_ *);
 	void	(*write_callback) (void *);
     void    (*error_callback) (struct socket_ *);
 
@@ -92,9 +92,19 @@ E void socket_empty_callback(void);
  */
 
 
-#define socket_read_callback(s, a)  (s)->read_callback  ? (s)->read_callback((s), a) : socket_empty_callback()
+#define socket_read_callback(s)     (s)->read_callback  ? (s)->read_callback((s))    : socket_empty_callback()
 #define socket_write_callback(s)    (s)->write_callback ? (s)->write_callback((s))   : socket_empty_callback()
 #define socket_error_callback(s)    (s)->write_callback ? (s)->error_callback((s))   : socket_empty_callback()
+
+#define  socket_set_read_callback(s, fnct)  (s)->read_callback  = fnct
+#define socket_set_write_callback(s, fnct)  (s)->write_callback = fnct
+#define socket_set_error_callback(s, fnct)	(s)->error_callback = fnct
+
+
+#define socket_set_callbacks(s, read, write, error) \
+ 	(s)->read_callback  = read;  \
+ 	(s)->write_callback = write; \
+ 	(s)->error_callback = error
 
 
 /****************************************************/
@@ -105,12 +115,13 @@ E void socket_empty_callback(void);
 
 #define socket_find socket_find_sd
 
-E int      socket_delfrom_list (Socket *);
-E int      socket_addto_list   (Socket *);
-E Socket * socket_find_by_sd   (int);
-E Socket * socket_find_by_name (char * name);
-E void     socket_purge_all    (void);
-E void     socket_purge_dead   (void);
+int      socket_delfrom_list (Socket *);
+int      socket_addto_list   (Socket *);
+Socket * socket_find_by_sd   (int);
+Socket * socket_find_by_name (char * name);
+void     socket_purge_all    (void);
+void     socket_purge_dead   (void);
+char   * socket_getline      (Socket *s);
 
 dlink_list sockets;
 

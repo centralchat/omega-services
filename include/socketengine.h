@@ -33,6 +33,7 @@ void del_se_fnct_startup(int  (*fnct)());
 int  se_startup ();
 void se_cleanup ();
 int  se_receive ();
+void se_init    (void);
 int  se_accept  (Socket *);
 int  se_read    (Socket *);
 int  se_listen  (Socket *, char *, int);

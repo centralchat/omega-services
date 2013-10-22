@@ -91,7 +91,8 @@ void __attribute__((format(printf, 5, 0))) log_message
 (int level, const char *file, int line, const char *function, const char *fmt, ...)
 {
   //TODO: Make this memory dynamic alloc
-  char * message = NULL;
+  char message[8129];
+  memset(message, 0, 8129);
 
   va_list ap;
 
@@ -114,8 +115,7 @@ void __attribute__((format(printf, 5, 0))) log_message
     return;
 
   va_start(ap, fmt);
-  if (!(vasprintf(&message, fmt, ap)))
-    return;
+  vsnprintf(message,sizeof(message), fmt, ap);
 
   //Console logging
   if (core.nofork)
@@ -124,8 +124,7 @@ void __attribute__((format(printf, 5, 0))) log_message
 
   fprintf(logfd, "[%s] %s %s(%d): %s\n", log_type_str[level], file,
       function, line, message);  
-
-  free(message);
+  
   fflush(logfd);
   va_end(ap);
 

@@ -73,9 +73,21 @@ void del_se_fnct_startup(int  (*fnct)())
 
 /************************************************************/
 /** 
- * se_listen
+ * se_init
  */
 
+ void se_init(void)
+ {
+ 	sockets.head = NULL;
+ 	sockets.tail = NULL;
+ }
+
+
+
+/************************************************************/
+/** 
+ * se_listen
+ */
 
 
 #ifdef HAVE_GETADDRINFO

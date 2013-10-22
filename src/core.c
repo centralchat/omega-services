@@ -24,7 +24,8 @@ static void core_enable_core_dump()
 
 /*********************************************************/
 
-void core_parse_opts(int argc, char ** argv, char ** env) { 
+void core_parse_opts(int argc, char ** argv, char ** env) 
+{ 
     int c;
 
     while ((c = getopt (argc, argv, "vbnc:d:")) != -1)
@@ -45,7 +46,7 @@ void core_parse_opts(int argc, char ** argv, char ** env) {
                 } 
                 else
                     fprintf(stderr,"Invalid config file specified with -c (%s) option skipping.\n", optarg);
-                    break;
+                break;
             case 'd':
                 if (optarg) core.debug = atoi(optarg);
                 break;
@@ -68,7 +69,8 @@ void core_parse_opts(int argc, char ** argv, char ** env) {
 
 /*********************************************************/
 
-void core_init() {
+void core_init() 
+{
     sync_state = SYNC_STATE_STARTUP;
 
     log_message(LOG_NOTICE, "Config File: %s\n", core.settings.config_file);
@@ -88,7 +90,8 @@ void core_init() {
 
     atexit(core_cleanup);
 
-
+    se_init();
+    
     mq_load_module("select", MOD_TYPE_SOCKET); //inject into modq
     
     modules_init(); // Run our modq to handle config load modules
@@ -96,30 +99,6 @@ void core_init() {
    
 }
 
-/*********************************************************/
-
-int core_connect_uplink()
-{
-    int ret = 0;
-
-    core.socket = socket_new();
-    core.socket->flags |= SOCK_UPLINK;
-    
-    log_message(LOG_INFO, "Connecting to: %s:%d", core.settings.con_host, core.settings.con_port);
-
-    ret = se_connect(core.socket, core.settings.con_host, 
-                core.settings.local_ip, core.settings.con_port);
-    if (ret < 0)
-    {
-        log_message(LOG_ERROR,"Unable to connect to %s:%d", core.settings.con_host, 
-            core.settings.con_port);        
-        socket_free(core.socket);
-    }   
-    else
-        socket_addto_list(core.socket);
-
-    return ret;
-}
 
 /*********************************************************/
 
@@ -130,7 +109,7 @@ void core_run(void) {
 
     se_startup();
 
-    if (core_connect_uplink() < 0)
+    if (uplink_connect() < 0)
         core_exit(0);
     
     log_message(LOG_NOTICE, "Begining normal runtime.");
@@ -152,7 +131,8 @@ void core_once_around(void)
 
 /*********************************************************/
 
-void core_cleanup(void) {
+void core_cleanup(void) 
+{
     FILE *fp;
 
     log_message(LOG_NOTICE, "Cleaning up core");
@@ -174,7 +154,9 @@ void core_cleanup(void) {
 
 /*********************************************************/
 
-void core_exit(int code) {
+
+void core_exit(int code) 
+{
     log_message(LOG_NOTICE, "Exitting on code: %d", code);
     //core_cleanup();
     exit(code);

@@ -32,7 +32,8 @@ SRCS  =          \
   socketengine.c        \
   sighandler.c          \
   socket.c              \
-  memory.c              \
+  uplink.c              \
+  parser.c              \
   thread.c
 
 OBJS = ${SRCS:.c=.o}

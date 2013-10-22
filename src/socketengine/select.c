@@ -82,6 +82,8 @@ static int select_receive(void) {
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 250 * 1000;
                 
+    log_message(LOG_DEBUG3, "Currently %d sockets in the list", sockets.count);
+    
 	rc = select (max_sockets + 1, &rfdset, &wfdset, NULL, &timeout);
 	if (rc > 0) // This indicates we have fd's ready for read/write
 	{
@@ -100,7 +102,12 @@ static int select_receive(void) {
 						socket_remove(s);
 						continue;
 					}
-					socket_read_callback(s, bread);
+					if (s->read_callback)
+						printf("Their is a read callback\n");
+					else
+						printf("Their is no read callback\n");
+					
+					socket_read_callback(s);
 				} 
 				else 
 				{ 

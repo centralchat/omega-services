@@ -77,10 +77,15 @@ Socket * socket_find_by_name(char * name)
 
 int socket_addto_list(Socket * s)
 {
+	
 	dlink_node * dl = NULL;
+	log_message(LOG_DEBUG3, "Adding %p to socket list", s);
+
 	if (!(dl = dlink_create()))
 		return FALSE;
-	dlink_add(s, dl, &sockets);
+	dlink_add_tail(s, dl, &sockets);
+
+	printf("%d\n", sockets.count);
 	return TRUE;
 }
 
@@ -89,7 +94,7 @@ int socket_addto_list(Socket * s)
 int socket_delfrom_list(Socket * s)
 {
 	dlink_node * dl = NULL;
-	
+	log_message(LOG_DEBUG3, "Removing %p from socket list", s);
 	if (!(dl = dlink_find_delete(s, &sockets)))
 		return FALSE;
 	dlink_free(dl);
@@ -137,17 +142,19 @@ void socket_purge_dead()
 	DLINK_FOREACH_SAFE(dl, tdl, sockets.head) 
 	{
 		s = dl->data;
+
 		if (socket_is_dead(s)) 
 		{
 			socket_free(s);
+			dlink_delete(dl, &sockets);
+			dlink_free(dl);
 			count++;
 		}
-		dlink_delete(dl, &sockets);
-		dlink_free(dl);
 
 	}
 	unlock_object(sockets);
-	log_message(LOG_DEBUG3, "Purge (%d) dead sockets", count);
+
+	log_message(LOG_DEBUG3, "Purge (%d/%d) dead sockets", count, sockets.count);
 }
 
 /************************************************************/
@@ -172,6 +179,8 @@ int socket_write(Socket * s, char * fmt, ...)
 
   return n;
 }
+
+/************************************************************/
 
 
 void socket_remove(Socket * s)
@@ -299,4 +308,46 @@ int socket_read(Socket * s)
 }
 
 /************************************************************/
+
+
+char * socket_getline (Socket *s)
+{
+    dlink_node      *dl, *tdl;
+    MessageBuffer   *m;
+    char            *line;
+
+    //don't even try to continue
+    if (s->lines == 0)
+        return NULL;
+
+    line = (char *) calloc(1, MAXLEN + 1);    
+    if (!line)
+    {
+		log_message(LOG_ERROR,"Unable to allocate memory.");
+		return NULL;
+    }
+
+
+    DLINK_FOREACH_SAFE (dl, tdl, s->msg_buffer.head)
+    {
+        m   = dl->data;
+
+        if (!m->message)
+        {
+            s->lines = 0;
+            return NULL;
+        }
+
+        memcpy (line, m->message, MAXLEN);
+        dlink_delete (dl, &s->msg_buffer);
+        dlink_free (dl);
+        free(m);
+
+		s->lines--;
+		return line;
+    }
+    return NULL;
+}
+
+
 
