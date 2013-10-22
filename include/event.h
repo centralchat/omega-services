@@ -45,13 +45,13 @@ dlink_list eventlist;
 
 void event_init         (void);
 
-int _event_dispatch     (char *, int, char *, char *, event_args_t *);
+int _event_dispatch     (char *, int, const char *, const char *, event_args_t *);
 int _event_add          (char *, int, char *, char *, int, int, event_return_t (*)(event_args_t *));
 int _event_remove       (char *, int, char *, char *, int, int, event_return_t (*)(event_args_t *));
 
 event_chain_t * event_chain_find_or_new(char *, int);
 event_chain_t * event_chain_new        (char *, int);
-event_chain_t * event_chain_find       (char *, int);
+event_chain_t * event_chain_find       (const char *, int);
 
 #endif //__EVENTHANDLER_H__
 

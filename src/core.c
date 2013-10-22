@@ -27,7 +27,7 @@ static void core_enable_core_dump()
 void core_parse_opts(int argc, char ** argv, char ** env) { 
     int c;
 
-    while ((c = getopt (argc, argv, "bnc:d:")) != -1)
+    while ((c = getopt (argc, argv, "vbnc:d:")) != -1)
     {
         switch (c)
         {
@@ -53,6 +53,10 @@ void core_parse_opts(int argc, char ** argv, char ** env) {
                 fprintf(stderr, "Running in nofork mode\n");
                 core.nofork = TRUE;
                 break;
+            case 'v':
+                fprintf(stderr, "Version: %s-%s\n", OMG_PKGNAME, VERSION_STRING_FULL);
+                exit(0);
+                break;
         }
     }
     core.cmdline.argv = argv;
@@ -72,7 +76,6 @@ void core_init() {
     config_load(core.settings.config_file);
 
     load_config_values();
-
     core_enable_core_dump();
 
     if (!core.nofork) daemonize();
@@ -80,6 +83,8 @@ void core_init() {
     //Initialize our signal handler
     sighandler_init();
     event_init();
+
+    modules_init();
 
     atexit(core_cleanup);
 

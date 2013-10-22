@@ -8,6 +8,7 @@ datarootdir	= @datarootdir@
 coredir     = @coredir@
 dbdir		= @dbdir@
 RM	        = @RM@
+BASH        = @BASH@
 
 SUBDIRS		= libopm src modules docs tools #contrib
 
@@ -28,7 +29,8 @@ autoconf:
 
 version:
 	@echo "Updating version information..."	
-	@sh ./include/version.sh
+	$(BASH) ./include/version.sh
+
 build: version
 	-@if [ ! -f include/setup.h ] ; then \
 		echo "Hmm... doesn't look like you've run configure..."; \

@@ -27,8 +27,8 @@ case "$OSNAME" in
 	;;
 esac
 
-AC_DEFINE(OMG_PKGNAME ,"$PACKAGE_NAME", [Define this to disable debugging support.])
-AC_DEFINE(OMG_RCNAME  ,"$PACKAGE_VERSION", [Define this to disable debugging support.])
+dnl AC_DEFINE(OMG_PKGNAME ,$PACKAGE_NAME, [Define this to disable debugging support.])
+dnl AC_DEFINE(OMG_RCNAME  ,$PACKAGE_VERSION, [Define this to disable debugging support.])
 
 AC_ISC_POSIX
 AC_C_INLINE
@@ -47,6 +47,7 @@ AC_CHECK_FUNCS([strlcpy strlcat getaddrinfo strdup setproctitle backtrace snprin
 AC_PATH_PROG(RM, rm)
 AC_PATH_PROG(CP, cp)
 AC_PATH_PROG(MV, mv)
+AC_PATH_PROG(BASH, bash)
 
 
 AX_LIB_MYSQL([0.0])

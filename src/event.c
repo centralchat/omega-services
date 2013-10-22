@@ -27,15 +27,16 @@ void event_init()
 /*****************************************************************/
 
 int _event_dispatch 
-(char * file, int line, char * func, char * name, event_args_t * args)
+(char * file, int line, const char * func, const char * name, event_args_t * args)
 {
 	
-	event_chain_t * ec = NULL;
-	event_t       * e  = NULL;
-	dlink_node    * dl = NULL, 
-	              *tdl = NULL;
 	event_return_t ret;
-	int           halt = FALSE;
+	event_chain_t * ec  = NULL;
+	event_t       * e   = NULL;
+	dlink_node    * dl  = NULL, 
+	              * tdl = NULL;
+
+	int           halt  = FALSE;
 
 	if (!(ec = event_chain_find(name, EVENT_TYPE_EMIT)))
 	{
@@ -109,7 +110,10 @@ int _event_add
 	evt->priority = prio;
 
 	dl = dlink_create();
+
+	thread_lock_obj(&ec->events, THREAD_MUTEX_FORCE_LOCK);
 	dlink_add_tail(evt, dl, &ec->events);
+	thread_lock_obj(&ec->events, THREAD_MUTEX_UNLOCK);
 
 	return TRUE;
 }
@@ -159,7 +163,7 @@ event_chain_t * event_chain_new(char * name, int type)
 
 /*****************************************************************/
 
-event_chain_t * event_chain_find(char * name, int type) 
+event_chain_t * event_chain_find(const char * name, int type) 
 {
 	dlink_node    * dl  = NULL,
 				  * tdl = NULL;				 

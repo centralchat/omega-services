@@ -2,11 +2,11 @@
 #include "stdinclude.h"
 #include "appinclude.h"
 
-static inline void startup_banner(void)
+static inline void core_startup_banner(void)
 {
   printf("\n");
   printf("Omega Security Services Daemon\n");
-  printf(" Build: \033[1;31m%s %s\033[0m\n", OMG_PKGFULL,OMG_PKGNAME);
+  printf(" Build: \033[1;31m%s\033[0m\n ", VERSION_STRING_FULL);
   printf(" Compiled: \033[1;31m%s\033[0m\n", COMPILE_DATE);
   printf(" On: \033[1;31m%s\033[0m\n", SYSUNAME_SHORT);
   printf(" Process ID: \033[1;31m%lu\033[0m\n",(unsigned long) getpid());
@@ -78,14 +78,14 @@ void daemonize(void)
 
 int main(int argc, char **argv, char **env)
 {
-    //db_connect("localhost", "root", "root");
-     startup_banner();
+   
 
 		//Bootstrap our core here prior to initing it.
     load_config_defaults();
     core_parse_opts(argc, argv, env);
 
-
+     //db_connect("localhost", "root", "root");
+    core_startup_banner();
 
     core_init();
     core_run();

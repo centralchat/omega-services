@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Build version string and increment Services build number.
 # coded by twitch and based very loosly on Anope's version
@@ -7,6 +7,23 @@
 # $Id: version.sh 2148 2011-04-30 03:47:09Z twitch $
 
 # Grab version information from the version control file.
+
+
+rm -rf include/version.h
+rm -rf version.h
+
+function seperate {
+  local IFS=$2
+  local foo
+  set -f # Disable glob expansion
+  foo=( $1 ) # Deliberately unquoted 
+  set +f
+  printf '%s\n' "${foo[@]}"
+}
+
+
+set OMG_PKGNAME="omega"
+set OMG_RCNAME="rework"
 
 REV=""
 UNAME=`uname -rsnm`
@@ -39,11 +56,12 @@ CUR=`pwd`
 for dir in `echo -n $PATH | sed 's/:/ /g'`; do
     if [ -x "${dir}/git" ]; then
         if [ -d ".git" ]; then
-            SHA=`cat .git/ORIG_HEAD`
-            #REV=${SHA:0:8}
+            SHA=$(cat .git/ORIG_HEAD)
+            REV=$(git describe)
+            BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
             #if test "X$REV" = "Xexported"; then
-				REV="0"
+			#	REV="0"
             #fi
         else
 			REV=""
@@ -60,18 +78,44 @@ for dir in `echo -n $PATH | sed 's/:/ /g'`; do
                 break
             fi
         fi
-
         break
     fi
 done
 
 if [ ! -z $REV ]; then
-	VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}${VERSION_EXTRA} (r${REV})"
-	VERSIONDOTTED="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${REV}${VERSION_EXTRA}"
-else
-	VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}${VERSION_EXTRA}"
-	VERSIONDOTTED="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}${VERSION_EXTRA}"
+
+    cnt=1
+    for i in $(seperate $REV, '.'); do
+        if [ $cnt -eq 1 ]; then
+            VERSION_MAJOR=$i
+        elif [[ $cnt -eq 2 ]]; then
+            VERSION_MINOR=$i
+        elif [[ $cnt -eq 3 ]]; then
+            VERSION_PATCH=${i:0:1}
+
+        fi
+        let cnt++
+    done
+
+    cnt=0
+    for i in $(git describe |  awk -vORS=, '{ print $1 }' | sed 's/\-/\n/'); do 
+        if [ $cnt -eq 0 ]; then
+            VERSION=$i
+        elif [ $cnt -eq 1 ]; then
+            strip=$(echo $i | head -c -1)
+            set REV="${BRANCH}-${strip}"
+        fi
+        let cnt++
+    done
+    VERSIONDOTTED="${REV}"
+    VERSIONFULL="${OMG_RCNAME}-(${BRANCH})-${REV}"
+else    
+    VERSIONDOTTED="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}"    
+    VERSIONFULL="${$VERSIONDOTTED}-${OMG_RCNAME}"
 fi
+
+VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}"
+
 CDATE=`date`
 SUNAME=`uname -s`
 SPROC=`uname -m`
@@ -100,14 +144,20 @@ cat >${TODIR}version.h <<EOF
 #define VERSION_MINOR	$VERSION_MINOR
 #define VERSION_PATCH	$VERSION_PATCH
 #define VERSION_EXTRA	"$VERSION_EXTRA"
+
 #define VERSION_BUILD	"$REV" 
 #define VERSION_SHA     "$SHA" 
 
 #define VERSION_NUM ((VERSION_MAJOR * 1000) + (VERSION_MINOR * 100) + VERSION_PATCH)
 
+
+#define OMG_PKGNAME "$OMG_PKGNAME"
+#define OMG_RCNAME  "$OMG_RCNAME"
+
 #define BUILD	"$BUILD"
-#define VERSION_STRING "$VERSION"
-#define VERSION_STRING_DOTTED "$VERSIONDOTTED"
+#define VERSION_STRING         "$VERSION"
+#define VERSION_STRING_DOTTED  "$VERSIONDOTTED"
+#define VERSION_STRING_FULL    "$VERSIONFULL"
 
 #define SYSUNAME    "$UNAME"
 #define SYSUNAME_SHORT "$UNAME_SHORT"

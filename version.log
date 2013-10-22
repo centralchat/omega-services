@@ -18,6 +18,10 @@ MOD_API_MINOR="6"
 MOD_API_PATCH="7"
 
 
+OMG_PKGNAME="omega"
+OMG_RCNAME="rework"
+
+
 #
 #     Alpha 2 released
 #   Version: 0.5.2 r1524 

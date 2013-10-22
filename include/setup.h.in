@@ -3,14 +3,6 @@
 #ifndef __SETUP_H__
 #define __SETUP_H__
 
-
-/* Arguments passed to configure */
-#undef OMG_PKGNAME
-
-/* Release name */
-#undef OMG_RCNAME
-
-
 /* PREFIX */
 #undef PREFIX
 

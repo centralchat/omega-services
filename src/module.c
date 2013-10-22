@@ -37,23 +37,23 @@ char * GetModErr(int status)
 		return "Invalid Module Return";
 
 	const char *ModErr[] = {
-			"Success, no error.",
-			"Module Error, Module Returned STOP.",
-			"Module Error, CRITICAL.",
-			"Module Error, FATAL.",
-			"Module Error, File already loaded.",
-			"Module Error, No such file.",
-			"Module Error, IO Error.",
-			"Module Error, Invalid API.",
-			"Module Error, Module does not support current module API.",
-			"Module Error, Allocating Memory.",
-			"Module Error, Unable to unload module.",
-			"Module Error, Invalid SYNTAX.",
-			"Module Warning, Unsafe to unload.",
-			"Module Error, Core set in no-module mode.",
-			"Module Error, SQLite is not available on this system.",
-			"Module Error, Dependency not met.",
-			NULL
+		"Success, no error.",
+		"Module Error, Module Returned STOP.",
+		"Module Error, CRITICAL.",
+		"Module Error, FATAL.",
+		"Module Error, File already loaded.",
+		"Module Error, No such file.",
+		"Module Error, IO Error.",
+		"Module Error, Invalid API.",
+		"Module Error, Module does not support current module API.",
+		"Module Error, Allocating Memory.",
+		"Module Error, Unable to unload module.",
+		"Module Error, Invalid SYNTAX.",
+		"Module Warning, Unsafe to unload.",
+		"Module Error, Core set in no-module mode.",
+		"Module Error, SQLite is not available on this system.",
+		"Module Error, Dependency not met.",
+		NULL
 	};
 
 	if (ModErr[status])

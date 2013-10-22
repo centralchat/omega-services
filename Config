@@ -585,7 +585,7 @@ print STDERR << "HELP";
 
      ./Config useage:
      -h        : this (help) message
-     -s        : updates current svn copy
+     -g        : updates current git copy
      -v        : config tool current version
      -q        : Run config non interactive
      -m	       : Run "make clean build install" only	
