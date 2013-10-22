@@ -91,7 +91,8 @@ void modules_init()
      */
 
 	if (debug > 0)
-		printf("\nRequired Module API: %d.%d.x [\033[1;32m%d\033[0m]\n\n", API_MAJOR, API_MINOR, API_VERSION);
+		log_message(LOG_DEBUG, "\nRequired Module API: %d.%d.x [\033[1;32m%d\033[0m]\n\n", 
+			API_MAJOR, API_MINOR, API_VERSION);
 
 	// if (!load_modules())
 	// 	return;

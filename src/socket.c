@@ -288,11 +288,9 @@ int socket_read(Socket * s)
 				message[i] = '\0';
 				dl	=   dlink_create ();
 				m	=   (MessageBuffer *) calloc (1, sizeof(MessageBuffer));
-
-				m->message = calloc(1, (sizeof(char) * strlen(message)+2));
 				
-				// memset  (m->message, '\0', sizeof(m->message));
-				strlcpy (m->message, message, sizeof(message));
+				memset  (m->message, '\0', sizeof(m->message));
+				strlcpy (m->message, message, sizeof(m->message));
 				log_message(LOG_DEBUG3, "Logging stuff %s", m->message);	
 
 				s->lines++;
@@ -314,39 +312,35 @@ char * socket_getline (Socket *s)
 {
     dlink_node      *dl, *tdl;
     MessageBuffer   *m;
-    char            *line;
+    char            *l = NULL;
 
     //don't even try to continue
     if (s->lines == 0)
         return NULL;
+ 
+    dl  = s->msg_buffer.head;
 
-    line = (char *) calloc(1, MAXLEN + 1);    
-    if (!line)
+    m   = dl->data;
+    if (m)
     {
-		log_message(LOG_ERROR,"Unable to allocate memory.");
-		return NULL;
+	    if (!m->message)
+	    {
+	        s->lines = 0;
+	        return NULL;
+	    }
+
+	    l =  strdup(m->message);
+	    dlink_delete (dl, &s->msg_buffer);
+	    dlink_free (dl);
+	    free(m);
+
+		s->lines--; 
+		return l;  	
     }
-
-
-    DLINK_FOREACH_SAFE (dl, tdl, s->msg_buffer.head)
-    {
-        m   = dl->data;
-
-        if (!m->message)
-        {
-            s->lines = 0;
-            return NULL;
-        }
-
-        memcpy (line, m->message, MAXLEN);
-        dlink_delete (dl, &s->msg_buffer);
-        dlink_free (dl);
-        free(m);
-
-		s->lines--;
-		return line;
-    }
-    return NULL;
+    else
+    	return NULL;
+ 
+	return l;
 }
 
 

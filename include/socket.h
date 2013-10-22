@@ -38,7 +38,7 @@ int max_sockets;
 
 typedef struct
 {
-	char * message;
+	char   message[MAXLEN];
 	size_t length;
 	int    completed;
 	
