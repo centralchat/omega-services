@@ -25,7 +25,8 @@ SRCS = \
   unreal32.c	\
   directircd.c	\
   charybdis.c   \
-  plexus.c
+  plexus.c      \
+  elemental.c
 
 SH_OBJS = ${SRCS:.c=.so}
 S_OBJS = ${SRCS:.c=.o}
