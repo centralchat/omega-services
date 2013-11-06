@@ -536,12 +536,7 @@ void read_usermode_string (User *u, char *umodes)
 
 						alog (LOG_DEBUG2, "Applying IRC Operator status to %s", u->nick);
 
-						if (toadd)
-						sendto_logchan ("\002Oper:\002 %s is now an IRC Operator.", u->nick);
-						else
-						sendto_logchan ("\002Oper:\002 %s is no longer an IRC Operator.\n", u->nick);
-
-						u->oper	= (toadd)? 1 : 0;
+    					u->oper	= (toadd)? 1 : 0;
 						setAccess (u);
 
 						break;
@@ -569,10 +564,6 @@ void read_usermode_string (User *u, char *umodes)
 						u->priv	= (toadd)? 1 : 0;
 						break;
 					case 10: // Server Administrator
-						if (toadd)
-						sendto_logchan ("\002Oper:\002 %s is now a Server Administrator.", u->nick);
-						else
-						sendto_logchan ("\002Oper:\002 %s is no longer a Server Administrator.\n", u->nick);
 						u->admin	= (toadd)? 1 : 0;
 						break;
 					case 11: // WebTV
