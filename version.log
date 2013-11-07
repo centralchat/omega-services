@@ -6,8 +6,6 @@
 #
 # $Id: version.log 2394 2012-06-30 15:56:22Z twitch $
 
-
-
 VERSION_MAJOR="0"
 VERSION_MINOR="8"
 VERSION_PATCH="0"
@@ -17,10 +15,8 @@ MOD_API_MAJOR="0"
 MOD_API_MINOR="8"
 MOD_API_PATCH="0"
 
-
 OMG_PKGNAME="omega"
 OMG_RCNAME="rework"
-
 
 #
 #     Alpha 2 released
