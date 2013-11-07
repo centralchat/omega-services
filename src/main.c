@@ -76,6 +76,8 @@ void daemonize(void)
   }
 }
 
+#ifndef TESTFRAME_WORK
+
 int main(int argc, char **argv, char **env)
 {
    
@@ -91,3 +93,5 @@ int main(int argc, char **argv, char **env)
     core_run();
     return 0;
 }
+
+#endif

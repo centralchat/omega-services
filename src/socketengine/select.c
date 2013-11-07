@@ -101,12 +101,7 @@ static int select_receive(void) {
 						socket_error_callback(s);
 						socket_remove(s);
 						continue;
-					}
-					if (s->read_callback)
-						printf("Their is a read callback\n");
-					else
-						printf("Their is no read callback\n");
-					
+					}					
 					socket_read_callback(s);
 				} 
 				else 

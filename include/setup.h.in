@@ -1,40 +1,22 @@
 /* include/setup.h.in.  Generated from configure.ac by autoheader.  */
 
-#ifndef __SETUP_H__
-#define __SETUP_H__
-
-/* PREFIX */
-#undef PREFIX
-
 /* Arguments passed to configure */
 #undef CONFIGURE_ARGS
+
+/* Prefix where config files are installed. */
+#undef CONFIG_DIR
 
 /* Prefix where core modules are installed. */
 #undef CORE_DIR
 
-/* Prefix where config files are stored. */
-#undef CONFIG_DIR
-
-/* Prefix where module files are stored. */
-#undef MODULE_DIR
-
-/* Prefix where to store miscelaneous runtime files. */
-#undef VAR_DIR
-
-/* Prefix where module files are stored. */
-#undef TMP_DIR
-
-/* Does the user have mysql */
-#undef HAVE_MYSQL
+/* Prefix where databases are saved. */
+#undef DBDIR
 
 /* Using debug commands */
 #undef DEBUG_MODE
 
-/* MySQL Enabled */
-#undef MYSQL_ENABLED
-
-/* Prefix where config files are installed. */
-#undef ETC_DIR
+/* Prefix where guardian modules are installed. */
+#undef GMOD_DIR
 
 /* Define to 1 if you have the `backtrace' function. */
 #undef HAVE_BACKTRACE
@@ -62,6 +44,9 @@
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
+
+/* Define to 1 if MySQL libraries are available */
+#undef HAVE_MYSQL
 
 /* OpenSSL support enabled */
 #undef HAVE_OPENSSL
@@ -129,6 +114,30 @@
 /* Define this to disable debugging support. */
 #undef NDEBUG
 
+/* Compiled with omega statistical module. */
+#undef OMEGASTATS
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Prefix where omega is installed. */
+#undef PREFIX
+
 /* Define to necessary symbol if this constant uses a non-standard name on
    your system. */
 #undef PTHREAD_CREATE_JOINABLE
@@ -138,6 +147,9 @@
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
+
+/* Prefix where temp files are saved. */
+#undef TMP_DIR
 
 /* Using debugging malloc */
 #undef USE_DMALLOC
@@ -167,6 +179,9 @@
 #endif
 
 
+/* Prefix where misc runtime are saved. */
+#undef VAR_DIR
+
 /* Define to 1 if on MINIX. */
 #undef _MINIX
 
@@ -181,6 +196,4 @@
    calls it, or to nothing if 'inline' is not supported under any name.  */
 #ifndef __cplusplus
 #undef inline
-#endif
-
 #endif

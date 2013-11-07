@@ -56,7 +56,17 @@ struct _core {
 
 } core;
 
+
+typedef struct {
+	void *source;
+	int  argc;
+	char **argv;
+	void *ptr; //used for passing random information to the method
+} args_t;
+
+
 int debug;
+
 
 E int sync_state;
 E void core_init          (void);

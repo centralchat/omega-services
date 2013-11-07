@@ -85,7 +85,6 @@ void core_init()
     //Initialize our signal handler
     sighandler_init();
     event_init();
-
     modules_init();
 
     atexit(core_cleanup);

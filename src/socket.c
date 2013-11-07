@@ -84,8 +84,6 @@ int socket_addto_list(Socket * s)
 	if (!(dl = dlink_create()))
 		return FALSE;
 	dlink_add_tail(s, dl, &sockets);
-
-	printf("%d\n", sockets.count);
 	return TRUE;
 }
 
@@ -290,9 +288,7 @@ int socket_read(Socket * s)
 				m	=   (MessageBuffer *) calloc (1, sizeof(MessageBuffer));
 				
 				memset  (m->message, '\0', sizeof(m->message));
-				strlcpy (m->message, message, sizeof(m->message));
-				log_message(LOG_DEBUG3, "Logging stuff %s", m->message);	
-
+				strlcpy (m->message, message, sizeof(m->message));			
 				s->lines++;
 				dlink_add_tail (m, dl, &s->msg_buffer);
 				i = 0;

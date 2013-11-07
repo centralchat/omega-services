@@ -12,6 +12,9 @@
 #define MAXLEN 2048
 #define MAXREADBUFFER MAXLEN*120+5
 
+#define SM_STRING_SIZE 64
+#define MD_STRING_SIZE 128
+#define LG_STRING_SIZE 256
 
 #define SRC_DIR PREFIX "/src/"
 #define OMG_PKGFULL OMG_PKGNAME "(" OMG_RCNAME ")"
@@ -42,6 +45,7 @@
 #include "socketengine.h"
 #include "event.h"
 #include "parser.h"
+#include "command.h"
 #include "uplink.h"
 
 

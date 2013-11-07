@@ -598,32 +598,18 @@ AC_CONFIG_SUBDIRS(libopm)
 CFLAGS="$CFLAGS $SSL_INCLUDES $MYSQL_CFLAGS -I$PWD/libopm/src/"
 LIBS="$LIBS $SSL_LIBS $MYSQL_LDFLAGS $PWD/libopm/src/.libs/libopm.a"
 
-dnl AC_CONFIG_FILES(
-dnl     Makefile                \
-dnl     src/Makefile            \
-dnl     docs/Makefile           \
-dnl     tools/Makefile          \
-dnl     modules/Makefile        \
-dnl     modules/core/Makefile   \
-dnl     modules/db/Makefile   \
-dnl     modules/client/Makefile     \
-dnl     modules/protocol/Makefile            \
-dnl     contrib/Makefile          \
-dnl     contrib/Makefile.sub        \
-dnl )
-
 AC_CONFIG_FILES(
-    Makefile                \
-    src/Makefile            \
-    src/socketengine/Makefile \
-dnl    src/database/Makefile   \
-    modules/Makefile        \
-    modules/core/Makefile   \
-    modules/db/Makefile   \
-    modules/client/Makefile     \
-    modules/protocol/Makefile            \
-    docs/Makefile           \
-    tools/Makefile          \
+    Makefile                   \
+    src/Makefile               \
+    src/socketengine/Makefile  \
+    modules/Makefile           \
+    modules/core/Makefile      \
+    modules/db/Makefile        \
+    modules/client/Makefile    \
+    modules/protocol/Makefile  \
+    docs/Makefile              \
+    tools/Makefile             \
+    tests/Makefile             \
 )
 
 
