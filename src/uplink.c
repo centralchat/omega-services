@@ -12,6 +12,7 @@ int uplink_connect()
     core.socket = socket_new();
     core.socket->flags |= SOCK_UPLINK;
     // socket_set_callbacks(core.socket, uplink_read_callback, NULL, NULL);
+
     core.socket->read_callback = uplink_read_callback;
 
     log_message(LOG_INFO, "Connecting to: %s:%d", core.settings.con_host, core.settings.con_port);

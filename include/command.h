@@ -4,15 +4,32 @@
 #define COMMAND_PRIME 2047
 #define COMMAND_HASH(str) hash_safe((str), COMMAND_PRIME)
 
-#define COMMAND_TYPE_SERVER 0
-#define COMMAND_TYPE_CLIENT 1
+#define COMMAND_LIST_SRV srvcommands
+#define COMMAND_LIST_USR usrcommands
 
 typedef struct {
-	char *event_string;
-	int (*handler)(void*,args_t *);
+	char * event_string;
+	int (*handler)(args_t *);
 } command_t;
 
-dlink_list commands[2][COMMAND_PRIME];
+dlink_list usrcommands[COMMAND_PRIME];
+dlink_list srvcommands[COMMAND_PRIME];
+
+#define   command_server_add(str, handler) command_add(COMMAND_LIST_SRV, str, handler)
+#define   command_server_del(str, handler) command_del(COMMAND_LIST_SRV, str, handler)
+#define  command_server_emit(str, args)    command_emit(COMMAND_LIST_SRV, str, args)
+
+#define    command_user_add(str, handler) command_add(COMMAND_LIST_USR, str, handler)
+#define    command_user_del(str, handler) command_del(COMMAND_LIST_USR, str, handler)
+#define   command_user_emit(str, args)    command_emit(COMMAND_LIST_USR, str, args)
+
+
+
+int         command_add  (dlink_list*, char *, int (*)(args_t *));
+void        command_del  (dlink_list*, char *, int (*)(args_t *));
+int         command_emit (dlink_list*, char *, args_t *);
+command_t * command_new  (char *, int (*)(args_t *));
+void        command_free (command_t *);
 
 
 

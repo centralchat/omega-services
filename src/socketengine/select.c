@@ -3,19 +3,20 @@
 #include "appinclude.h"
 
 
-#define NAME "Select Engine"
-#define VERSION "0.0.1"
-#define ABI MAKE_ABI(0,0,1)
-#define AUTHOR "Mitch Rodrigues"
-
-
 static int  select_load();
 static void select_unload();
 static int  select_receive();
 static void select_cleanup();
 
 
-MODHEADER(NAME,AUTHOR,VERSION,ABI, select_load, select_unload);
+MODHEADER("Select Engine", 
+	"Omega Development",
+	"0.0.1", 
+	MAKE_ABI(0,0,1), 
+	select_load, 
+	select_unload
+);
+
 
 fd_set wfdset,
 	rfdset,
@@ -101,7 +102,8 @@ static int select_receive(void) {
 						socket_error_callback(s);
 						socket_remove(s);
 						continue;
-					}					
+					}				
+					log_message(LOG_DEBUG3, "Calling read for socket: %d", s->sd);	
 					socket_read_callback(s);
 				} 
 				else 

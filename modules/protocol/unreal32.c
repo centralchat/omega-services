@@ -15,9 +15,9 @@ static char *umodes[128] = {
         "x",   // Has a cloaked host
         "v",   // Has a virtual host
         "p",   // Private
-        "A",  // Server Administrator
-	 "V",	 // Web TV
-        "H",    // Hidden Oper
+        "A",   // Server Administrator
+	    "V",   // Web TV
+        "H",   // Hidden Oper
         NULL
 };
 

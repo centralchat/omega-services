@@ -609,7 +609,6 @@ AC_CONFIG_FILES(
     modules/protocol/Makefile  \
     docs/Makefile              \
     tools/Makefile             \
-    tests/Makefile             \
 )
 
 

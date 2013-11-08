@@ -151,6 +151,35 @@ void parser_handle_line(char *inbuf)
     for (i = 1; para[i] != NULL; i++)
         log_message (LOG_DEBUG3, "para[%d]: %s", i, para[i]);
 
+	args_t * args = NULL;
+	if ((args = alloca(sizeof(args_t))))
+	{
+		args->argv   = para;
+		args->argc   = n;
+		args->source = NULL;
+	}
+
+	if (!para[0])
+		command_server_emit (command, args);
+	// else
+	// {
+	// 	if ((li = find_serv((char*)para[0])))
+	// 	{
+	// 		HandleServCmd (command, li, n, (char **)para); //handles a command from the server
+	// 		return;
+	// 	}
+	// 	if ((u = find_user((char*)para[0])))
+    //  {
+	// 		u->lastsent = time(NULL); //set our time so we can have accurate WHOIS
+	// 		HandleUserCmd(command, u, n, (char**)para);
+	// 		return;
+	// 	}
+	// 	if (n > 2)
+	// 		if (((strcasecmp(command, "NOTICE")) == 0) && ((strcasecmp (para[1], "AUTH")) == 0))
+	// 			return;
+	// 	alog (LOG_DEBUG, "Unknown prefix: %s\n", para[0]);
+	// 	return;
+	// }
 	command = NULL;
     s = NULL;
 	pos = NULL;
