@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # Build version string and increment Services build number.
 # coded by twitch and based very loosly on Anope's version
@@ -10,19 +10,6 @@
 
 REV=""
 UNAME=`uname -rsnm`
-
-rm include/version.h
-
-function seperate {
-  local IFS=$2
-  local foo
-  set -f # Disable glob expansion
-  foo=( $1 ) # Deliberately unquoted 
-  set +f
-  printf '%s\n' "${foo[@]}"
-}
-
-
 
 if [ -f ${PWD}/version.log ] ; then
   CTRL="${PWD}/version.log"
@@ -74,7 +61,7 @@ if [ -z "${REV}" ]; then
             if [ ! -z $REV ]; then
 
                 cnt=1
-                for i in $(seperate $REV, '.'); do
+                for i in $(git describe | sed s/:/\\n/g); do
                     if [ $cnt -eq 1 ]; then
                         VERSION_MAJOR=$i
                     elif [[ $cnt -eq 2 ]]; then
@@ -83,7 +70,7 @@ if [ -z "${REV}" ]; then
                         VERSION_PATCH=${i:0:1}
 
                     fi
-                    let cnt++
+                     cnt=$((cnt+1))
                 done
 
                 cnt=0
@@ -94,7 +81,7 @@ if [ -z "${REV}" ]; then
                         strip=$(echo $i | head -c -1)
                         set REV="${BRANCH}-${strip}"
                     fi
-                    let cnt++
+                    cnt=$((cnt+1))
                 done   
             fi 
             break
