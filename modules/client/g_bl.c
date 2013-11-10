@@ -117,9 +117,9 @@ static int Module_Init()
 	// 	if (!(spawn_thread(NULL, bl_thread_entry, NULL)))
 	// 			break;
 	// }
-    if (!i)
-		return MOD_STOP;
-	bl_lock = 0;
+ //    if (!i)
+	// 	return MOD_STOP;
+	// bl_lock = 0;
 	return MOD_CONT;
 
 }
