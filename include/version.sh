@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Build version string and increment Services build number.
 # coded by twitch and based very loosly on Anope's version
@@ -10,6 +10,19 @@
 
 REV=""
 UNAME=`uname -rsnm`
+
+rm include/version.h
+
+function seperate {
+  local IFS=$2
+  local foo
+  set -f # Disable glob expansion
+  foo=( $1 ) # Deliberately unquoted 
+  set +f
+  printf '%s\n' "${foo[@]}"
+}
+
+
 
 if [ -f ${PWD}/version.log ] ; then
   CTRL="${PWD}/version.log"
@@ -35,68 +48,83 @@ else
 fi
 
 CUR=`pwd`
-CUR=`pwd`
+if [ -d "${CUR}/.svn" ]; then
+    for dir in `echo -n $PATH | sed 's/:/ /g'`; do
+        if [ -x "${dir}/svnversion" ]; then
 
-for dir in `echo -n $PATH | sed 's/:/ /g'`; do
-    if [ -x "${dir}/git" ]; then
-        if [ -d ".git" ]; then
+            echo "calling svn"
+            if [ -d ".svn" ]; then
+                REV=`${dir}/svnversion ${CUR} | sed 's/^\([0-9]{1,9}\)M*$/\1/' | cut -f 1 -d : | sed -e 's/M//'`
+                if test "X$REV" = "Xexported"; then
+                    REV="0"
+                fi
+            fi 
+            break
+        fi
+    done
+fi
+
+if [ -z "${REV}" ]; then
+    for dir in `echo -n $PATH | sed 's/:/ /g'`; do
+        if [ -d "${CUR}/.git" ]; then
             SHA=$(cat .git/ORIG_HEAD)
-            REV=$(git describe)
+            REV=$(git describe --long)
             BRANCH=$(git rev-parse --abbrev-ref HEAD)
+            echo $REV
+            if [ ! -z $REV ]; then
 
-            #if test "X$REV" = "Xexported"; then
-                        #        REV="0"
-            #fi
+                cnt=1
+                for i in $(seperate $REV, '.'); do
+                    if [ $cnt -eq 1 ]; then
+                        VERSION_MAJOR=$i
+                    elif [[ $cnt -eq 2 ]]; then
+                        VERSION_MINOR=$i
+                    elif [[ $cnt -eq 3 ]]; then
+                        VERSION_PATCH=${i:0:1}
+
+                    fi
+                    let cnt++
+                done
+
+                cnt=0
+                for i in $(git describe |  awk -vORS=, '{ print $1 }' | sed 's/\-/\n/'); do 
+                    if [ $cnt -eq 0 ]; then
+                        VERSION=$i
+                    elif [ $cnt -eq 1 ]; then
+                        strip=$(echo $i | head -c -1)
+                        set REV="${BRANCH}-${strip}"
+                    fi
+                    let cnt++
+                done   
+            fi 
+            break
         else
-                        REV=""
+            REV=""
             if [ -f ../.snapshot ]; then
                 REV=`cat ../.snapshot`
                 break
             fi
             if [ -f .snapshot ]; then
-                REV=`cat .snapshot`
+            REV=`cat .snapshot`
                 break
             fi
             if [ -f .revision ]; then
                 REV=`cat .revision`
                 break
             fi
+            break
         fi
-        break
-    fi
-done
-
-if [ ! -z $REV ]; then
-
-    cnt=1
-    for i in $(seperate $REV, '.'); do
-        if [ $cnt -eq 1 ]; then
-            VERSION_MAJOR=$i
-        elif [[ $cnt -eq 2 ]]; then
-            VERSION_MINOR=$i
-        elif [[ $cnt -eq 3 ]]; then
-            VERSION_PATCH=${i:0:1}
-
-        fi
-        let cnt++
     done
+fi
 
-    cnt=0
-    for i in $(git describe |  awk -vORS=, '{ print $1 }' | sed 's/\-/\n/'); do 
-        if [ $cnt -eq 0 ]; then
-            VERSION=$i
-        elif [ $cnt -eq 1 ]; then
-            strip=$(echo $i | head -c -1)
-            set REV="${BRANCH}-${strip}"
-        fi
-        let cnt++
-    done
+if [ -z "#{REV}" ]; then
     VERSIONDOTTED="${REV}"
-    VERSIONFULL="${OMG_RCNAME}-(${BRANCH})-${REV}"
+    VERSIONFULL="${BRANCH})-${REV}"
 else    
     VERSIONDOTTED="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}"    
-    VERSIONFULL="${$VERSIONDOTTED}-${OMG_RCNAME}"
+    VERSIONFULL="$VERSIONDOTTED"
 fi
+
 
 VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}"
 
