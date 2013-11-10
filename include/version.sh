@@ -55,21 +55,9 @@ if [ -z "${REV}" ]; then
     for dir in `echo -n $PATH | sed 's/:/ /g'`; do
         if [ -d "${CUR}/.git" ]; then
             SHA=$(cat .git/ORIG_HEAD)
-            REV=$(git describe --long)
-            BRANCH=$(git rev-parse --abbrev-ref HEAD)
-            echo $REV
-            if [ ! -z $REV ]; then
-                cnt=0
-                for i in $(git describe |  awk -vORS=, '{ print $1 }' | sed 's/\-/\n/'); do 
-                    if [ $cnt -eq 0 ]; then
-                        VERSION=$i
-                    elif [ $cnt -eq 1 ]; then
-                        strip=$(echo $i | head -c -1)
-                        set REV="${BRANCH}-${strip}"
-                    fi
-                    cnt=$((cnt+1))
-                done   
-            fi 
+            REV=$(git rev-parse --verify --short HEAD)
+            BRANCH=$(git rev-parse --abbrev-ref HEAD) 
+            echo $REV                       
             break
         else
             REV=""
@@ -94,9 +82,9 @@ fi
 VERSIONDOTTED="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}"    
 VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}"
 if [ -z "#{REV}" ]; then
-    VERSIONFULL="${BRANCH})-${REV}"
+    VERSION_FULL="$VERSIONDOTTED"
 else    
-    VERSIONFULL="$VERSIONDOTTED"
+    VERSION_FULL="${VERSIONDOTTED}-${REV}"
 fi
 
 CDATE=`date`
@@ -129,6 +117,7 @@ cat >${TODIR}version.h <<EOF
 #define VERSION_PATCH	$VERSION_PATCH
 #define VERSION_EXTRA	"$VERSION_EXTRA"
 #define VERSION_BUILD	"$REV" 
+#define VERSION_FULL    "$VERSION_FULL"
 
 #define VERSION_NUM ((VERSION_MAJOR * 1000) + (VERSION_MINOR * 100) + VERSION_PATCH)
 
