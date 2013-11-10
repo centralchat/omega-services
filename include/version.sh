@@ -35,17 +35,20 @@ else
 fi
 
 CUR=`pwd`
+CUR=`pwd`
 
 for dir in `echo -n $PATH | sed 's/:/ /g'`; do
-    if [ -x "${dir}/svnversion" ]; then
-        if [ -d ".svn" ]; then
-            REV=`${dir}/svnversion ${CUR} | sed 's/^\([0-9]{1,9}\)M*$/\1/' | cut -f 1 -d : | sed -e 's/M//'`
+    if [ -x "${dir}/git" ]; then
+        if [ -d ".git" ]; then
+            SHA=$(cat .git/ORIG_HEAD)
+            REV=$(git describe)
+            BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-            if test "X$REV" = "Xexported"; then
-				REV="0"
-            fi
+            #if test "X$REV" = "Xexported"; then
+                        #        REV="0"
+            #fi
         else
-			REV=""
+                        REV=""
             if [ -f ../.snapshot ]; then
                 REV=`cat ../.snapshot`
                 break
@@ -59,18 +62,44 @@ for dir in `echo -n $PATH | sed 's/:/ /g'`; do
                 break
             fi
         fi
-
         break
     fi
 done
 
 if [ ! -z $REV ]; then
-	VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}${VERSION_EXTRA} (r${REV})"
-	VERSIONDOTTED="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}.${REV}${VERSION_EXTRA}"
-else
-	VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}${VERSION_EXTRA}"
-	VERSIONDOTTED="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}${VERSION_EXTRA}"
+
+    cnt=1
+    for i in $(seperate $REV, '.'); do
+        if [ $cnt -eq 1 ]; then
+            VERSION_MAJOR=$i
+        elif [[ $cnt -eq 2 ]]; then
+            VERSION_MINOR=$i
+        elif [[ $cnt -eq 3 ]]; then
+            VERSION_PATCH=${i:0:1}
+
+        fi
+        let cnt++
+    done
+
+    cnt=0
+    for i in $(git describe |  awk -vORS=, '{ print $1 }' | sed 's/\-/\n/'); do 
+        if [ $cnt -eq 0 ]; then
+            VERSION=$i
+        elif [ $cnt -eq 1 ]; then
+            strip=$(echo $i | head -c -1)
+            set REV="${BRANCH}-${strip}"
+        fi
+        let cnt++
+    done
+    VERSIONDOTTED="${REV}"
+    VERSIONFULL="${OMG_RCNAME}-(${BRANCH})-${REV}"
+else    
+    VERSIONDOTTED="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}"    
+    VERSIONFULL="${$VERSIONDOTTED}-${OMG_RCNAME}"
 fi
+
+VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}"
+
 CDATE=`date`
 SUNAME=`uname -s`
 SPROC=`uname -m`
