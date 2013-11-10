@@ -154,7 +154,7 @@ void parser_handle_line(char *inbuf)
 	args_t * args = NULL;
 	if ((args = alloca(sizeof(args_t))))
 	{
-		args->argv   = para;
+		args->argv   = (char **)para;
 		args->argc   = n;
 		args->source = NULL;
 	}

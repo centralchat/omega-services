@@ -46,6 +46,7 @@
 #include "event.h"
 #include "parser.h"
 #include "command.h"
+#include "server.h"
 #include "uplink.h"
 
 

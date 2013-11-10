@@ -1,12 +1,12 @@
-CC		= @CC@
+CC		    = @CC@
 
 INSTALL		= @INSTALL@
 INSTALL_BIN	= @INSTALL_PROGRAM@
 
-prefix	= @prefix@
+prefix	    = @prefix@
 exec_prefix	= @exec_prefix@
 bindir		= @bindir@
-RM		= @RM@
+RM		    = @RM@
 
 CFLAGS		= -pipe -O0 -fPIC -g -ggdb @CFLAGS@ -I../include
 LDFLAGS		= @LDFLAGS@
@@ -18,16 +18,17 @@ build: all
 
 SUBDIRS = socketengine
 
-SRCS  =          \
-  core.c         \
-  config.c       \
-  configparser.c \
-  dlink.c      \
-  main.c       \
-  database.c   \
-  module.c           \
-  tools.c            \
-  event.c            \
+SRCS  =                 \
+  core.c                \
+  config.c              \
+  configparser.c        \
+  dlink.c               \
+  server.c              \
+  main.c                \
+  database.c            \
+  module.c              \
+  tools.c               \
+  event.c               \
   logger.c              \
   socketengine.c        \
   sighandler.c          \

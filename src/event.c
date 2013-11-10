@@ -1,3 +1,4 @@
+#include "modinclude.h"
 #include "stdinclude.h"
 #include "appinclude.h"
 
@@ -27,7 +28,7 @@ void event_init()
 /*****************************************************************/
 
 int _event_dispatch 
-(char * file, int line, const char * func, const char * name, event_args_t * args)
+(char * file, int line, const char * func, const char * name, args_t * args)
 {
 	
 	event_return_t ret;
@@ -87,7 +88,7 @@ int _event_dispatch_timed()
 //__FILE__, __LINE__, __PRETTY_FUNCTION__
 int _event_add
 (char *file, int line, char *func, char *name, int type, 
-	int prio, event_return_t (*handler)(event_args_t *))
+	int prio, event_return_t (*handler)(args_t *))
 {
 	dlink_node    * dl  = NULL;
 	event_chain_t * ec  = NULL;
@@ -122,7 +123,7 @@ int _event_add
 
 int _event_remove 
 (char *file, int line, char *fnct, char *name, int type, 
-	int prio, event_return_t (*handr)(event_args_t *))
+	int prio, event_return_t (*handr)(args_t *))
 {
 
 }

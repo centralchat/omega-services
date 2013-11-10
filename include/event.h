@@ -15,16 +15,11 @@ typedef enum {
 	EVENT_RUN_LATER
 } event_return_t;
 
-typedef union { 
-	void   * ptr;
-	Socket * sock;
-} event_args_t;
-
 typedef struct { 
 	INFO_ATTRIBUTES;
 
 	int priority;
-	event_return_t (*handler)(event_args_t *);
+	event_return_t (*handler)(args_t *);
 } event_t;
 
 typedef struct {
@@ -45,9 +40,9 @@ dlink_list eventlist;
 
 void event_init         (void);
 
-int _event_dispatch     (char *, int, const char *, const char *, event_args_t *);
-int _event_add          (char *, int, char *, char *, int, int, event_return_t (*)(event_args_t *));
-int _event_remove       (char *, int, char *, char *, int, int, event_return_t (*)(event_args_t *));
+int _event_dispatch     (char *, int, const char *, const char *, args_t *);
+int _event_add          (char *, int, char *, char *, int, int, event_return_t (*)(args_t *));
+int _event_remove       (char *, int, char *, char *, int, int, event_return_t (*)(args_t *));
 
 event_chain_t * event_chain_find_or_new(char *, int);
 event_chain_t * event_chain_new        (char *, int);

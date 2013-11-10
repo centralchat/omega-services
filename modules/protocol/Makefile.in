@@ -1,3 +1,4 @@
+
 CC			= @CC@
 RM			= @RM@
 CFLAGS			= @CFLAGS@
@@ -13,7 +14,8 @@ INSTALL_DATA		= @INSTALL_DATA@
 
 moduledir		= @moduledir@/protocol
 
-SRCS = #\
+SRCS =          \
+  unreal32.c	\
 # bahamut.c	\
 # inspircd.c	\
 # inspircd12.c  \
@@ -22,7 +24,6 @@ SRCS = #\
 # ratbox.c      \
 # ratbox3.c     \
 # hybrid.c      \
-# unreal32.c	\
 # directircd.c	\
 # charybdis.c   \
 # plexus.c

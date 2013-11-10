@@ -14,7 +14,7 @@ server_t * server_new()
 
 /************************************************************/
 
-server_t * server_init(char * name, char * desc, char * uid)
+server_t * server_init(char * name, char * desc, char * sid)
 {
 	server_t   * tmp = NULL;
 	dlink_node * dl  = NULL;
@@ -22,9 +22,10 @@ server_t * server_init(char * name, char * desc, char * uid)
 		return NULL;
 
 	strncpy(tmp->name, name, sizeof(tmp->name));
-	strncpy(tmp->uid,   uid, sizeof(tmp->uid));
+	strncpy(tmp->sid,   sid, sizeof(tmp->sid));
 	strncpy(tmp->desc, desc, sizeof(tmp->desc));
 
+	server_addto_list(tmp);
 
 	return tmp;
 }
@@ -84,14 +85,14 @@ server_t * server_findby_name (char * name)
 
 /************************************************************/
 
-server_t * server_findby_uid  (char * uid)
+server_t * server_findby_sid  (char * sid)
 {
 	server_t * srv;
 	dlink_node *dl;
 	DLINK_FOREACH(dl, servers.head)
 	{
 		srv = dl->data;
-		if (!strcasecmp(srv->uid, uid))
+		if (!strcasecmp(srv->sid, sid))
 			return srv;
 	}
 	return NULL;
