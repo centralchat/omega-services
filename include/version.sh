@@ -59,20 +59,6 @@ if [ -z "${REV}" ]; then
             BRANCH=$(git rev-parse --abbrev-ref HEAD)
             echo $REV
             if [ ! -z $REV ]; then
-
-                cnt=1
-                for i in $(git describe | sed s/:/\\n/g); do
-                    if [ $cnt -eq 1 ]; then
-                        VERSION_MAJOR=$i
-                    elif [[ $cnt -eq 2 ]]; then
-                        VERSION_MINOR=$i
-                    elif [[ $cnt -eq 3 ]]; then
-                        VERSION_PATCH=${i:0:1}
-
-                    fi
-                     cnt=$((cnt+1))
-                done
-
                 cnt=0
                 for i in $(git describe |  awk -vORS=, '{ print $1 }' | sed 's/\-/\n/'); do 
                     if [ $cnt -eq 0 ]; then
@@ -104,16 +90,14 @@ if [ -z "${REV}" ]; then
     done
 fi
 
+
+VERSIONDOTTED="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}"    
+VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}"
 if [ -z "#{REV}" ]; then
-    VERSIONDOTTED="${REV}"
     VERSIONFULL="${BRANCH})-${REV}"
 else    
-    VERSIONDOTTED="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}"    
     VERSIONFULL="$VERSIONDOTTED"
 fi
-
-
-VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}"
 
 CDATE=`date`
 SUNAME=`uname -s`
