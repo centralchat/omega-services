@@ -29,7 +29,7 @@ autoconf:
 
 version:
 	@echo "Updating version information..."	
-	/bin/bash ./include/version.sh
+	@sh ./include/version.sh
 build: version
 	-@if [ ! -f include/setup.h ] ; then \
 		echo "Hmm... doesn't look like you've run configure..."; \
