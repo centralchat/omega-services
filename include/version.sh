@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # Build version string and increment Services build number.
 # coded by twitch and based very loosly on Anope's version
@@ -7,20 +7,6 @@
 # $Id: version.sh 2148 2011-04-30 03:47:09Z twitch $
 
 # Grab version information from the version control file.
-
-
-rm -rf include/version.h
-rm -rf version.h
-
-function seperate {
-  local IFS=$2
-  local foo
-  set -f # Disable glob expansion
-  foo=( $1 ) # Deliberately unquoted 
-  set +f
-  printf '%s\n' "${foo[@]}"
-}
-
 
 set OMG_PKGNAME="omega"
 set OMG_RCNAME="rework"
@@ -52,69 +38,61 @@ else
 fi
 
 CUR=`pwd`
+if [ -d "${CUR}/.svn" ]; then
+    for dir in `echo -n $PATH | sed 's/:/ /g'`; do
+        if [ -x "${dir}/svnversion" ]; then
 
-for dir in `echo -n $PATH | sed 's/:/ /g'`; do
-    if [ -x "${dir}/git" ]; then
-        if [ -d ".git" ]; then
-            SHA=$(cat .git/ORIG_HEAD)
-            REV=$(git describe)
-            BRANCH=$(git rev-parse --abbrev-ref HEAD)
+            echo "calling svn"
+            if [ -d ".svn" ]; then
+                REV=`${dir}/svnversion ${CUR} | sed 's/^\([0-9]{1,9}\)M*$/\1/' | cut -f 1 -d : | sed -e 's/M//'`
+                if test "X$REV" = "Xexported"; then
+                    REV="0"
+                fi
+            fi 
+            break
+        fi
+    done
+fi
 
-            #if test "X$REV" = "Xexported"; then
-			#	REV="0"
-            #fi
+if [ -z "${REV}" ]; then
+    for dir in `echo -n $PATH | sed 's/:/ /g'`; do
+        if [ -d "${CUR}/.git" ]; then
+            if [ -f "${CUR}/.git/ORIG_HEAD" ]; then
+                SHA=$(cat .git/ORIG_HEAD)
+            else
+                SHA=""
+            fi
+            REV=$(git rev-parse --verify --short HEAD)
+            BRANCH=$(git rev-parse --abbrev-ref HEAD) 
+            echo $REV                       
+            break
         else
-			REV=""
+            REV=""
             if [ -f ../.snapshot ]; then
                 REV=`cat ../.snapshot`
                 break
             fi
             if [ -f .snapshot ]; then
-                REV=`cat .snapshot`
+            REV=`cat .snapshot`
                 break
             fi
             if [ -f .revision ]; then
                 REV=`cat .revision`
                 break
             fi
+            break
         fi
-        break
-    fi
-done
-
-if [ ! -z $REV ]; then
-
-    cnt=1
-    for i in $(seperate $REV, '.'); do
-        if [ $cnt -eq 1 ]; then
-            VERSION_MAJOR=$i
-        elif [[ $cnt -eq 2 ]]; then
-            VERSION_MINOR=$i
-        elif [[ $cnt -eq 3 ]]; then
-            VERSION_PATCH=${i:0:1}
-
-        fi
-        let cnt++
     done
-
-    cnt=0
-    for i in $(git describe |  awk -vORS=, '{ print $1 }' | sed 's/\-/\n/'); do 
-        if [ $cnt -eq 0 ]; then
-            VERSION=$i
-        elif [ $cnt -eq 1 ]; then
-            strip=$(echo $i | head -c -1)
-            set REV="${BRANCH}-${strip}"
-        fi
-        let cnt++
-    done
-    VERSIONDOTTED="${REV}"
-    VERSIONFULL="${OMG_RCNAME}-(${BRANCH})-${REV}"
-else    
-    VERSIONDOTTED="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}"    
-    VERSIONFULL="${$VERSIONDOTTED}-${OMG_RCNAME}"
 fi
 
+
+VERSIONDOTTED="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}"    
 VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}"
+if [ -z "#{REV}" ]; then
+    VERSION_FULL="$VERSIONDOTTED"
+else    
+    VERSION_FULL="${VERSIONDOTTED}-${REV}"
+fi
 
 CDATE=`date`
 SUNAME=`uname -s`
@@ -124,9 +102,10 @@ UNAME_SHORT="${SUNAME} (${SPROC})"
 
 
 cat >${TODIR}version.h <<EOF
-/* Version information.
- * (C) 2013 Mitch Rodrigues
+/* Version information for Omega Server.
+ *
  * (C) 2008-2010 Omega Team
+ *
  *
  * Please read COPYING and CREDITS for further details.
  *
@@ -144,20 +123,17 @@ cat >${TODIR}version.h <<EOF
 #define VERSION_MINOR	$VERSION_MINOR
 #define VERSION_PATCH	$VERSION_PATCH
 #define VERSION_EXTRA	"$VERSION_EXTRA"
-
 #define VERSION_BUILD	"$REV" 
-#define VERSION_SHA     "$SHA" 
+#define VERSION_FULL    "$VERSION_FULL"
 
 #define VERSION_NUM ((VERSION_MAJOR * 1000) + (VERSION_MINOR * 100) + VERSION_PATCH)
-
 
 #define OMG_PKGNAME "$OMG_PKGNAME"
 #define OMG_RCNAME  "$OMG_RCNAME"
 
 #define BUILD	"$BUILD"
-#define VERSION_STRING         "$VERSION"
-#define VERSION_STRING_DOTTED  "$VERSIONDOTTED"
-#define VERSION_STRING_FULL    "$VERSIONFULL"
+#define VERSION_STRING "$VERSION"
+#define VERSION_STRING_DOTTED "$VERSIONDOTTED"
 
 #define SYSUNAME    "$UNAME"
 #define SYSUNAME_SHORT "$UNAME_SHORT"
