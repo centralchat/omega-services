@@ -13,6 +13,7 @@ BASH        = @BASH@
 SUBDIRS		= libopm src modules docs tools #contrib
 
 all: build
+test:
 
 update: update-get build
 
