@@ -1,0 +1,10 @@
+language: c
+install: ./configure && make clean build install
+compiler:
+  - gcc
+  - clang
+branches:
+  only:
+    - corev2
+    - master
+    - develop
