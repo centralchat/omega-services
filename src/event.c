@@ -78,8 +78,7 @@ int _event_dispatch
 
 int _event_dispatch_timed()
 {
-
-
+	return 0;
 }
 
 
@@ -125,7 +124,7 @@ int _event_remove
 (char *file, int line, char *fnct, char *name, int type, 
 	int prio, event_return_t (*handr)(args_t *))
 {
-
+	return 0;
 }
 
 /*****************************************************************/
@@ -134,7 +133,7 @@ event_chain_t * event_chain_find_or_new(char * name, int type)
 {
 	event_chain_t * ec = NULL;
 	if (!(ec = event_chain_find(name, type))) {
-		log_message(LOG_EVENT, "Event chain is empty creating event: %s", 
+		log_message(LOG_EVENT, "Event chain is empty creating event: %s type: %s", 
 			name, event_type_string(type));
 		ec = event_chain_new(name, type);
 	}

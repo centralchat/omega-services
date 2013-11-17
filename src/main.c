@@ -6,7 +6,7 @@ static inline void core_startup_banner(void)
 {
   printf("\n");
   printf("Omega Security Services Daemon\n");
-  printf(" Build: \033[1;31m%s\033[0m\n ", VERSION_STRING_FULL);
+  printf(" Build: \033[1;31m%s\033[0m\n ", VERSION_STRING);
   printf(" Compiled: \033[1;31m%s\033[0m\n", COMPILE_DATE);
   printf(" On: \033[1;31m%s\033[0m\n", SYSUNAME_SHORT);
   printf(" Process ID: \033[1;31m%lu\033[0m\n",(unsigned long) getpid());

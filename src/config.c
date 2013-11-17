@@ -19,7 +19,7 @@ void load_config_values(void) {
 	if ((ce = (char *)get_config_entry("settings", "pidfile")))
 		snprintf (core.settings.pid_file, sizeof(core.settings.pid_file), "%s/%s", VAR_DIR, ce);
 	else
-		snprintf (core.settings.pid_file, sizeof(core.settings.pid_file), "%s/app.pid", VAR_DIR, ce);
+		snprintf (core.settings.pid_file, sizeof(core.settings.pid_file), "%s/app.pid", VAR_DIR);
 
     if ((ce = (char *)get_config_entry("bind", "host")))
 		strlcpy (core.settings.local_ip,  ce,  sizeof(core.settings.local_ip));		

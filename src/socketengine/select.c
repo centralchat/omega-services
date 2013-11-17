@@ -122,4 +122,6 @@ static int select_receive(void) {
 			}
 		}
 	}
+
+	return 1;
 }

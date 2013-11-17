@@ -63,14 +63,14 @@ void socket_free(Socket * s)
 
 Socket * socket_find_by_sd(int sd)
 {
-
+	return NULL;
 }
 
 /************************************************************/
 
 Socket * socket_find_by_name(char * name)
 {
-
+	return NULL;
 }
 
 /************************************************************/

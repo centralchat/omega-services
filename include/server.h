@@ -38,5 +38,6 @@ void       server_free(server_t *);
 server_t * server_findby_name ();
 server_t * server_findby_sid  ();
 
+void server_addto_list(server_t *);
 
 #endif

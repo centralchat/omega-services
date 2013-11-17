@@ -71,7 +71,7 @@ int thread_signal		            (Thread *);
 int thread_cond_signal           (pthread_cond_t *);
 int thread_wait_for_cond         (Thread* t, pthread_cond_t *);
 int thread_cancel		            (Thread*);
-
+int thread_count		();
 
 #define thread_lock_mutex(t,opt) thread_lock_obj(&(x)->mutex.lock, opt) 
 #define thread_lock_mutex(t,opt) thread_lock_obj(&(x)->mutex.lock, opt) 

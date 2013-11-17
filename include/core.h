@@ -77,6 +77,7 @@ E void core_once_around   (void);
 E void core_parse_opts    (int, char **, char **);
 E int  core_reload        (void);
 E int  core_connect_uplink(void);
+E void daemonize(void);
 
 
 #endif

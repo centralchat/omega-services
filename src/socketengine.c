@@ -221,7 +221,7 @@ int se_accept(Socket * s)
 {
 	int sd;
 	struct sockaddr_in client_name;
- 	int client_name_len = sizeof(client_name);
+ 	socklen_t client_name_len = sizeof(client_name);
 
 	sd = accept(s->sd, (struct sockaddr *)&client_name, &client_name_len);
 	int flags = fcntl(sd, F_GETFL, 0);

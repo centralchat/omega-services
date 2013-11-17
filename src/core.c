@@ -55,7 +55,7 @@ void core_parse_opts(int argc, char ** argv, char ** env)
                 core.nofork = TRUE;
                 break;
             case 'v':
-                fprintf(stderr, "Version: %s-%s\n", OMG_PKGNAME, VERSION_STRING_FULL);
+                fprintf(stderr, "Version: %s-%s\n", OMG_PKGNAME, VERSION_STRING);
                 exit(0);
                 break;
         }

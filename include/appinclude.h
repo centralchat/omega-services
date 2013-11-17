@@ -39,6 +39,7 @@
 #include "thread.h"
 #include "module.h"
 #include "database.h"
+#include "config.h"
 #include "configparser.h"
 #include "socket.h"
 #include "core.h"
