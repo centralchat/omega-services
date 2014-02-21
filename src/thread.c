@@ -39,43 +39,43 @@ Thread * thread_spawn(void *params, void (*init_fnct)(void *),void (*exit_fnct)(
 
 #ifdef    HAVE_PTHREAD
 
-    Thread *t;
-    dlink_node *dl;
+  Thread *t;
+  dlink_node *dl;
 
-    int status = 0;
-    int thread_current = 0;
+  int status = 0;
+  int thread_current = 0;
 	struct sched_param param;
 
-    t = (Thread*) malloc(sizeof(Thread));
+  t = (Thread*) malloc(sizeof(Thread));
 
-    pthread_mutex_init(&t->mutex.lock, NULL); //initialize the mutex
+  pthread_mutex_init(&t->mutex.lock, NULL); //initialize the mutex
 
-    pthread_attr_init(&t->attr);
-    pthread_attr_setdetachstate(&t->attr, PTHREAD_CREATE_DETACHED);
+  pthread_attr_init(&t->attr);
+  pthread_attr_setdetachstate(&t->attr, PTHREAD_CREATE_DETACHED);
 
-    pthread_cond_init (&t->mutex.cond, NULL);
+  pthread_cond_init (&t->mutex.cond, NULL);
 	pthread_attr_setschedparam (&t->attr, &param);
 
 
-    status = pthread_create(&t->tid, &t->attr, (void*) init_fnct, params);
+  status = pthread_create(&t->tid, &t->attr, (void*) init_fnct, params);
 
-    switch (status)
-    {
-        case 0:
-        	break;
-        case EAGAIN:
-			free(t);
-			alog(LOG_ERROR,"Unable to spawn threaded process - necessary resources locked");
-            return NULL;
-        case EINVAL:
-			free(t);
-            alog(LOG_ERROR,"Unable to spawn threaded process - invalid attributes");
-            return NULL;
-        case EPERM:
-			free(t);
-            alog(LOG_ERROR,"Unable to spawn threaded process - incorrect permissions");
-            return NULL;
-    }
+  switch (status)
+  {
+    case 0:
+    	break;
+    case EAGAIN:
+  		free(t);
+  		alog(LOG_ERROR,"Unable to spawn threaded process - necessary resources locked");
+      return NULL;
+    case EINVAL:
+		  free(t);
+      alog(LOG_ERROR,"Unable to spawn threaded process - invalid attributes");
+      return NULL;
+    case EPERM:
+	   	free(t);
+      alog(LOG_ERROR,"Unable to spawn threaded process - incorrect permissions");
+      return NULL;
+  }
 
 	if (params)
 		t->params = params;

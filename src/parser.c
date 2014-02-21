@@ -93,11 +93,14 @@ void parser_handle_line(char *inbuf)
 	const char *para[MAXPARA + 2];
 
 	char *command = NULL;
-    char *s = NULL;
+  char *s = NULL;
 	char *pos = NULL;
 
-    int i;
+  int i;
 	int n = 0;
+
+
+	server_t * source; 
 
 	memset(para,0,sizeof(para));
 
@@ -148,8 +151,8 @@ void parser_handle_line(char *inbuf)
 	/* assert for safety, if command is NULL abort */
 	s_assert(command != NULL);
 
-    for (i = 1; para[i] != NULL; i++)
-        log_message (LOG_DEBUG3, "para[%d]: %s", i, para[i]);
+  for (i = 1; para[i] != NULL; i++)
+    log_message (LOG_DEBUG3, "para[%d]: %s", i, para[i]);
 
 	args_t * args = NULL;
 	if ((args = alloca(sizeof(args_t))))
@@ -161,6 +164,7 @@ void parser_handle_line(char *inbuf)
 
 	if (!para[0])
 		command_server_emit (command, args);
+
 	// else
 	// {
 	// 	if ((li = find_serv((char*)para[0])))

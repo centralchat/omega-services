@@ -8,10 +8,10 @@ void sighandler_init()
 {
 	signal(SIGINT,	sighandler);
 	signal(SIGTERM, sighandler);
-    signal(SIGUSR2, sighandler);
-    signal(SIGHUP,	sighandler);
-    signal(SIGUSR1, sighandler);
-    signal(SIGPIPE, sighandler);
+  signal(SIGUSR2, sighandler);
+  signal(SIGHUP,	sighandler);
+  signal(SIGUSR1, sighandler);
+  signal(SIGPIPE, sighandler);
 	signal(SIGTRAP, SIG_IGN);
 }
 
@@ -25,7 +25,7 @@ void sighandler(int sig)
 	switch (sig)
 	{
 		case SIGHUP:
-			//core_rehash(0);
+			core_reload(0);
 			break;
 		case SIGPIPE:
 			break;

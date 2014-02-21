@@ -21,14 +21,35 @@ void load_config_values(void) {
 	else
 		snprintf (core.settings.pid_file, sizeof(core.settings.pid_file), "%s/app.pid", VAR_DIR);
 
-    if ((ce = (char *)get_config_entry("bind", "host")))
+  if ((ce = (char *)get_config_entry("bind", "host")))
 		strlcpy (core.settings.local_ip,  ce,  sizeof(core.settings.local_ip));		
 
 
-	if ((ce = (char *)get_config_entry("link", "name")))
-		strlcpy (core.settings.con_host,  ce,  sizeof(core.settings.local_ip));		
 
-	core.settings.con_port = get_config_int("link", "port", 7080);
+	if ((ce = (char *)get_config_entry("protocol", "name")))
+	{
+		addto_mod_que_ext(ce, MOD_TYPE_PROTOCOL, MOD_ACT_LOAD, MOD_QUEUE_PRIO_PRE);
+		strlcpy(core.settings.protocol, ce, sizeof(core.settings.protocol));
+	}
+
+
+
+	if ((ce = (char *)get_config_entry("server", "name")))
+		strlcpy (core.settings.server.name, ce,sizeof(core.settings.server.name));
+	if ((ce = (char *)get_config_entry("server", "sid")))
+		strlcpy (core.settings.server.sid, ce, sizeof(core.settings.server.sid));
+	if ((ce = (char *)get_config_entry("server", "numeric")))
+		strlcpy (core.settings.server.numeric, ce, sizeof(core.settings.server.numeric));
+	if ((ce = (char *)get_config_entry("link", "name")))
+		strlcpy (core.settings.link.name, ce, sizeof(core.settings.link.name));
+	if ((ce = (char *)get_config_entry("link", "pass")))
+		strlcpy (core.settings.link.pass, ce,sizeof(core.settings.link.pass));	
+	if ((ce = (char *)get_config_entry("link", "network")))
+		strlcpy (core.settings.link.network, ce, sizeof(core.settings.link.network));	
+	if ((ce = (char *)get_config_entry("link", "port")))
+			core.settings.link.port = atoi(ce);	 		
+
+
 	core.settings.port     = get_config_int("bind", "port", 2990);
 	max_sockets            = get_config_int("settings", "maxfds", 1024);
 

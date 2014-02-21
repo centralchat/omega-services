@@ -38,13 +38,29 @@ struct _core {
 
 	struct {
 		struct  hostent	*local_host;
-	    char    pid_file[MAXPATH];
-		char	local_ip[MAXHOST];
+	  char    pid_file[MAXPATH];
+		char	  local_ip[MAXHOST];
 		int     port;
 		char    config_file[MAXPATH];
-		char    con_host[MAXHOST];
-		int     con_port;
+
+		//Should this really go here?
+		char    protocol[MAXFUNC];
+
+		struct { 
+			char name[MAXHOST];
+			char sid[10];
+			char numeric[10];
+		} server;
+
+		struct { 
+			char name[MAXHOST];
+			char network[32];
+			char pass[64];
+			int  port;
+		} link;
+
 	} settings;
+
 
 	struct { 
 		char **env;
@@ -69,14 +85,14 @@ int debug;
 
 
 E int sync_state;
+E void core_exit          (int);
+E int  core_reload        (int);
 E void core_init          (void);
 E void core_run           (void);
-E void core_exit          (int);
 E void core_cleanup       (void);
 E void core_once_around   (void);
-E void core_parse_opts    (int, char **, char **);
-E int  core_reload        (void);
 E int  core_connect_uplink(void);
+E void core_parse_opts    (int, char **, char **);
 E void daemonize(void);
 
 

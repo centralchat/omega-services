@@ -6,14 +6,11 @@
 
 static const char * event_type_string(int type)
 {
-	switch (type)
-	{
-		case EVENT_TYPE_TIMED:
-			return "Timed";
-		case EVENT_TYPE_EMIT:
-			return "Emittable";
-	}
-	return "";
+	const char * type_strings[] = {
+		"Timed",
+		"Emittable"
+	};
+	return type_strings[type];
 }
 
 /*****************************************************************/
@@ -38,6 +35,7 @@ int _event_dispatch
 	              * tdl = NULL;
 
 	int           halt  = FALSE;
+	int           cnt   = 0;
 
 	if (!(ec = event_chain_find(name, EVENT_TYPE_EMIT)))
 	{
@@ -51,25 +49,16 @@ int _event_dispatch
 	DLINK_FOREACH_SAFE(dl, tdl, ec->events.head)
 	{
 		e = dl->data;
-		ret = e->handler(args);
-		switch (ret)
+		cnt++;
+		if (!event_fire(e, NULL)) 
 		{
-			case EVENT_SUCCESS:
-			case EVENT_SKIP:
-			case EVENT_RUN_LATER:
-				halt = FALSE;
-				break;
-			case EVENT_HALT:
-			case EVENT_ERROR:
-			case EVENT_FATAL:
-				log_message(LOG_DEBUG, "Filter chain halted");
-				halt = TRUE;
-				break;
+			log_message(LOG_EVENT, "Event chain halted");
+			break;
 		}
-		if (halt) break;
-
 	}
 	thread_lock_obj(&ec->events, THREAD_MUTEX_UNLOCK);
+
+	log_message(LOG_DEBUG, "Ran %d events in chain", cnt);
 
 	return TRUE;
 }
@@ -78,9 +67,72 @@ int _event_dispatch
 
 int _event_dispatch_timed()
 {
+
+	dlink_node    * dl  = NULL,
+				        * tdl = NULL;
+
+	event_chain_t * ec  = NULL;
+	event_t       *  e  = NULL;
+
+
+	int            ret  = 0,
+	               cnt  = 0,
+	              halt  = 0;
+
+	thread_lock_obj(&eventlist, THREAD_MUTEX_FORCE_LOCK);
+
+	DLINK_FOREACH_SAFE(dl,tdl, eventlist.head)
+	{
+		cnt = 0;
+		ec  = dl->data;
+
+		if (ec->type != EVENT_TYPE_TIMED)
+			continue;
+
+		//Do we need to run again?
+		if ((ec->lastran + ec->runtime) > time(NULL)) 
+			continue;
+
+		ec->lastran = time(NULL); //update lastran time
+
+		DLINK_FOREACH_SAFE(dl, tdl, ec->events.head)
+		{
+			e = dl->data;
+			cnt++;
+
+			if (!event_fire(e, NULL)) 
+			{
+				log_message(LOG_EVENT, "Timed event chain halted");
+				break;
+			}
+		}
+
+		log_message(LOG_EVENT, "Ran %d events in chain %s", cnt, ec->name);
+	}
+	thread_lock_obj(&eventlist, THREAD_MUTEX_UNLOCK);
+
 	return 0;
 }
 
+/*****************************************************************/
+
+int event_fire(event_t * e, args_t * args)
+{
+		int ret = e->handler(args);
+		switch (ret)
+		{
+			case EVENT_SUCCESS:
+			case EVENT_SKIP:
+			case EVENT_RUN_LATER:
+				return TRUE;
+			case EVENT_HALT:
+			case EVENT_ERROR:
+			case EVENT_FATAL:
+				log_message(LOG_EVENT, "(%s:%d/%s) Event returned non successful value (%d)", e->file, e->lineno, e->func, ret);
+				return FALSE;
+		}
+		return FALSE;
+}
 
 
 /*****************************************************************/
@@ -135,7 +187,7 @@ event_chain_t * event_chain_find_or_new(char * name, int type)
 	if (!(ec = event_chain_find(name, type))) {
 		log_message(LOG_EVENT, "Event chain is empty creating event: %s type: %s", 
 			name, event_type_string(type));
-		ec = event_chain_new(name, type);
+		ec = event_chain_new(name, type);		
 	}
 	return ec;
 }
@@ -154,9 +206,11 @@ event_chain_t * event_chain_new(char * name, int type)
 	ec->events.head = NULL;
 	ec->events.tail = NULL;
 
-
 	strlcpy(ec->name, ec->name, sizeof(ec->name));
-	ec->type = type;
+
+	ec->lastran = 0;
+	ec->runtime = 0;
+	ec->type    = type;
 
 	return ec;
 }

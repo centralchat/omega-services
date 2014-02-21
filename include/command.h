@@ -17,10 +17,10 @@ dlink_list srvcommands[COMMAND_PRIME];
 
 #define   command_server_add(str, handler) command_add(COMMAND_LIST_SRV, str, handler)
 #define   command_server_del(str, handler) command_del(COMMAND_LIST_SRV, str, handler)
-#define  command_server_emit(str, args)    command_emit(COMMAND_LIST_SRV, str, args)
+#define   command_server_emit(str, args)   command_emit(COMMAND_LIST_SRV, str, args)
 
-#define    command_user_add(str, handler) command_add(COMMAND_LIST_USR, str, handler)
-#define    command_user_del(str, handler) command_del(COMMAND_LIST_USR, str, handler)
+#define   command_user_add(str, handler)  command_add(COMMAND_LIST_USR, str, handler)
+#define   command_user_del(str, handler)  command_del(COMMAND_LIST_USR, str, handler)
 #define   command_user_emit(str, args)    command_emit(COMMAND_LIST_USR, str, args)
 
 

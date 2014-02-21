@@ -190,11 +190,11 @@ int config_parse(char *buffer)
 						for (;*ptr && *(ptr+1) != '\n';ptr++) 
 							/** Do nothing **/ ;
 					
-                    if ((*(ptr-1)=='*') && (in_comment)) { 
-                         in_comment = 0; 
-                         break;                    
-                    }	
-                    
+          if ((*(ptr-1)=='*') && (in_comment)) { 
+               in_comment = 0; 
+               break;                    
+          }	
+              
 					if (*(ptr + 1) == '*')
 					{
 						for (;*ptr;ptr++) {
@@ -218,8 +218,8 @@ int config_parse(char *buffer)
 			case '\r':
 				break;
 			default:
-                    if (in_comment)
-                         break;
+          if (in_comment) break;
+          
 					//we aren't in a tag - nook out garbage information and spit out an error
 				    if (!open_tag) {
 							printf("Found stray information not inside a directive tag in [%s:%d]\n", file, line);
@@ -249,12 +249,12 @@ int config_parse(char *buffer)
 						 * will never be obtainable MUAHAHAHAH
 						 */
 						if ((pos = strchr(ptr, '='))) {
-                            if ((pos - start) > sizeof(list))
-                            {
-                               printf("Buffer overflow detected: %s:%d\n", file, line);
-                               printf("   Buffer: \n %s", start);
-                               core_exit(0);
-                            }
+              if ((pos - start) > sizeof(list))
+              {
+                 printf("Buffer overflow detected: %s:%d\n", file, line);
+                 printf("   Buffer: \n %s", start);
+                 core_exit(0);
+              }
 							strncpy(list, start, pos - start);
 							
 							if (*pos == ' ')

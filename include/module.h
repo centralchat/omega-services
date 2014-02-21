@@ -26,7 +26,13 @@
 #define MOD_ERR_DEPENDENCY 15
 
 
-#define MOD_SOCKET_PATH MODULE_DIR "/socketengine/"
+#define MOD_STD_PATH      MODULE_DIR
+#define MOD_SOCKET_PATH   MODULE_DIR "/socketengine/"
+#define MOD_PROTOCOL_PATH MODULE_DIR "/protocol/"
+#define MOD_CORE_PATH     MODULE_DIR "/core/"
+#define MOD_CONTRIB_PATH  MODULE_DIR "/contrib/"
+#define MOD_DB_PATH       MODULE_DIR "/db/"
+#define MOD_CLIENT_PATH   MODULE_DIR "/client/"
 
 
 //Quick reference module errors... designed for ease of use.
@@ -40,6 +46,7 @@ enum ModTypes {
     MOD_TYPE_UNKNOWN, 
     MOD_TYPE_CORE,
     MOD_TYPE_SOCKET,
+    MOD_TYPE_PROTOCOL,
     MOD_TYPE_3RD,
     MOD_TYPE_DB
 };
@@ -148,10 +155,13 @@ int nomodules;
  * Module Load Order
  */
 
-#define MOD_LOAD_NONE -1 //no module load order
-#define MOD_LOAD_PRE 0
-#define MOD_LOAD_STD 1
-#define MOD_LOAD_POST 2
+ enum ModQuePriority { 
+    MOD_QUEUE_PRIO_NONE = -1,
+    MOD_QUEUE_PRIO_ALL  =  0,
+    MOD_QUEUE_PRIO_PRE  =  1,
+    MOD_QUEUE_PRIO_POST =  2,
+    MOD_QUEUE_PRIO_STD  =  3
+ };
 
 
 /************************************************/
@@ -284,11 +294,11 @@ int run_mod_que(int);
 
 //Api to wrap the module que in a sensible mannor
 #define mq_load_module(name, type) \
-  addto_mod_que_ext(name, type, MOD_ACT_LOAD, MOD_LOAD_STD)
+  addto_mod_que_ext(name, type, MOD_ACT_LOAD, MOD_QUEUE_PRIO_STD)
 #define mq_reload_module(name, type) \
-  addto_mod_que_ext(name, type, MOD_ACT_RELOAD, MOD_LOAD_STD)
+  addto_mod_que_ext(name, type, MOD_ACT_RELOAD, MOD_QUEUE_PRIO_STD)
 #define mq_reload_unmodule(name) \
-  addto_mod_que_ext(name, MOD_TYPE_UNKNOWN, MOD_ACT_UNLOAD, MOD_LOAD_STD)
+  addto_mod_que_ext(name, MOD_TYPE_UNKNOWN, MOD_ACT_UNLOAD, MOD_QUEUE_PRIO_STD)
 
 
 

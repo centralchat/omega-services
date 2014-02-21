@@ -4,16 +4,16 @@
 
 #define SOCKET_NEW      0x00000000
 #define SOCK_CONNECTING	0x00000001
-#define SOCK_UPLINK		0x00000002
-#define SOCK_LISTEN		0x00000004
-#define SOCK_CTRL		0x00000008
-#define SOCK_WRITE		0x00000010
-#define SOCK_READ		0x00000020
-#define SOCK_NOREAD		0x00000040
-#define SOCK_DEAD		0x00000080
+#define SOCK_UPLINK	  	0x00000002
+#define SOCK_LISTEN		  0x00000004
+#define SOCK_CTRL		    0x00000008
+#define SOCK_WRITE		  0x00000010
+#define SOCK_READ		    0x00000020
+#define SOCK_NOREAD		  0x00000040
+#define SOCK_DEAD		    0x00000080
 
 
-#define SOCK_CLUSTER	0x00000100 //Reserve for when we do clustering
+#define SOCK_CLUSTER	  0x00000100 //Reserve for when we do clustering
 
 
 #define socket_is_connecting(s) ((s)->flags & SOCK_CONNECTING)

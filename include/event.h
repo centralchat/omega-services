@@ -25,6 +25,7 @@ typedef struct {
 typedef struct {
 	char name[32];
 	int  runtime;
+	int  lastran;
 	int  type;	
 	dlink_list events;
 } event_chain_t;
@@ -34,15 +35,19 @@ dlink_list eventlist;
 
 #define event(x,arg) event_dispatch(_A_, x, arg)
 
-#define event_dispatch(evt,arg)    _event_dispatch(_A_, evt, arg)
-#define event_add     (evt, fnct)  _event_add(_A_, evt, fnct)
-#define event_remove  (evnt, fnct) _event_remove(_A_, evt, fnct)
+#define event_dispatch(evt, arg)    _event_dispatch(_A_, evt, arg)
+#define event_add     (evt, fnct)   _event_add(_A_, evt, fnct)
+#define event_remove  (evt, fnct)   _event_remove(_A_, (evt), (fnct))
 
 void event_init         (void);
 
 int _event_dispatch     (char *, int, const char *, const char *, args_t *);
 int _event_add          (char *, int, char *, char *, int, int, event_return_t (*)(args_t *));
 int _event_remove       (char *, int, char *, char *, int, int, event_return_t (*)(args_t *));
+
+//Internal mechanism of fireing an event. Called by both timed and dispatch event
+//controllers.
+int event_fire          (event_t *, args_t *);
 
 event_chain_t * event_chain_find_or_new(char *, int);
 event_chain_t * event_chain_new        (char *, int);
