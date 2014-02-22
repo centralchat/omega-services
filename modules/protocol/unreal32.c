@@ -73,8 +73,12 @@ event_return_t unreal32_uplink(args_t * args)
 
 void unreal32_server()
 {
-    socket_write(core.socket, "SERVER %s %d :U0-*-%s %s", 
-      core.settings.server.name, 1, core.settings.server.numeric, "Omega Security");
+    printf("Unreal32: %d\n", core.socket->sd);
+    printf("Core: %s\n", core.settings.server.name);
+    printf("Core: %s\n", core.settings.server.numeric);
+
+    socket_write(core.socket, "SERVER %s %d :U0-*-%s Omega", 
+      core.settings.server.name, 1, core.settings.server.numeric);
 
     event_dispatch("CONNECT", NULL);
 }

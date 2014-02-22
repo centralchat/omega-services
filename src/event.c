@@ -45,9 +45,10 @@ int _event_dispatch
 
 	log_message(LOG_EVENT, "(%s:%d) Dispatching event %s", file, line, name);
 
-	thread_lock_obj(&ec->events, THREAD_MUTEX_FORCE_LOCK);
+	// thread_lock_obj(&ec->events, THREAD_MUTEX_FORCE_LOCK);
 	DLINK_FOREACH_SAFE(dl, tdl, ec->events.head)
 	{
+		printf("looping\n");
 		e = dl->data;
 		cnt++;
 		if (!event_fire(e, NULL)) 
@@ -56,7 +57,7 @@ int _event_dispatch
 			break;
 		}
 	}
-	thread_lock_obj(&ec->events, THREAD_MUTEX_UNLOCK);
+	//thread_lock_obj(&ec->events, THREAD_MUTEX_UNLOCK);
 
 	log_message(LOG_DEBUG, "Ran %d events in chain", cnt);
 
@@ -138,8 +139,8 @@ int event_fire(event_t * e, args_t * args)
 /*****************************************************************/
 //__FILE__, __LINE__, __PRETTY_FUNCTION__
 int _event_add
-(char *file, int line, char *func, char *name, int type, 
-	int prio, event_return_t (*handler)(args_t *))
+(char *file, int line, const char *func, const char *name, int type, 
+	event_return_t (*handler)(args_t *))
 {
 	dlink_node    * dl  = NULL;
 	event_chain_t * ec  = NULL;
@@ -159,13 +160,10 @@ int _event_add
 
 	evt->lineno   = line;
 	evt->handler  = handler;
-	evt->priority = prio;
+	evt->priority = 0;
 
 	dl = dlink_create();
-
-	thread_lock_obj(&ec->events, THREAD_MUTEX_FORCE_LOCK);
 	dlink_add_tail(evt, dl, &ec->events);
-	thread_lock_obj(&ec->events, THREAD_MUTEX_UNLOCK);
 
 	return TRUE;
 }
@@ -173,15 +171,15 @@ int _event_add
 /*****************************************************************/
 
 int _event_remove 
-(char *file, int line, char *fnct, char *name, int type, 
-	int prio, event_return_t (*handr)(args_t *))
+(char *file, int line, const char *fnct, const char *name, int type, 
+	event_return_t (*handr)(args_t *))
 {
 	return 0;
 }
 
 /*****************************************************************/
 
-event_chain_t * event_chain_find_or_new(char * name, int type) 
+event_chain_t * event_chain_find_or_new(const char * name, int type) 
 {
 	event_chain_t * ec = NULL;
 	if (!(ec = event_chain_find(name, type))) {
@@ -194,7 +192,7 @@ event_chain_t * event_chain_find_or_new(char * name, int type)
 
 /*****************************************************************/
 
-event_chain_t * event_chain_new(char * name, int type) 
+event_chain_t * event_chain_new(const char * name, int type) 
 {
 	dlink_node    * dl  = NULL;				 
 	event_chain_t * ec  = NULL;
@@ -206,12 +204,16 @@ event_chain_t * event_chain_new(char * name, int type)
 	ec->events.head = NULL;
 	ec->events.tail = NULL;
 
-	strlcpy(ec->name, ec->name, sizeof(ec->name));
+	strlcpy(ec->name, name, sizeof(ec->name));
 
 	ec->lastran = 0;
 	ec->runtime = 0;
 	ec->type    = type;
 
+	dl = dlink_create();
+	dlink_add_tail(ec, dl, &eventlist);
+
+	log_message(LOG_DEBUG3, "Creating event chain for %s", name);
 	return ec;
 }
 
@@ -220,7 +222,7 @@ event_chain_t * event_chain_new(char * name, int type)
 event_chain_t * event_chain_find(const char * name, int type) 
 {
 	dlink_node    * dl  = NULL,
-				  * tdl = NULL;				 
+				        * tdl = NULL;				 
 	event_chain_t * ec  = NULL;
 
 	DLINK_FOREACH_SAFE(dl,tdl, eventlist.head)
@@ -229,7 +231,7 @@ event_chain_t * event_chain_find(const char * name, int type)
 		if (ec->type != type)
 			continue;
 
-		if (!strcasecmp(ec->name, name))
+		if (strcasecmp(ec->name, name)==0)
 			break;
 		else
 			ec = NULL;

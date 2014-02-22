@@ -52,7 +52,7 @@ void socket_free(Socket * s)
 
     socket_delfrom_list(s);
     
-	s->sd = -1;
+	  s->sd = -1;
     s->flags |= SOCK_DEAD;
     s->error_callback = NULL;
     free(s);
@@ -144,8 +144,6 @@ void socket_purge_dead()
 		if (socket_is_dead(s)) 
 		{
 			socket_free(s);
-			dlink_delete(dl, &sockets);
-			dlink_free(dl);
 			count++;
 		}
 

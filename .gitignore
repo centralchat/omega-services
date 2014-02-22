@@ -5,7 +5,7 @@
 # Libraries
 *.lib
 *.a
-
+.vagrant
 # Shared objects (inc. Windows DLLs)
 *.dll
 *.so
