@@ -25,6 +25,9 @@ server_t * server_init(char * name, char * desc, char * sid)
 	strncpy(tmp->sid,   sid, sizeof(tmp->sid));
 	strncpy(tmp->desc, desc, sizeof(tmp->desc));
 
+
+	log_message(LOG_INFO, "Adding server: %s", tmp->name);
+	
 	server_addto_list(tmp);
 
 	return tmp;
@@ -72,8 +75,11 @@ void server_free(server_t * srv)
 
 server_t * server_findby_name (char * name) 
 {
-	server_t * srv;
-	dlink_node *dl;
+	server_t   * srv = NULL;
+	dlink_node * dl  = NULL;
+
+	if (!name) return NULL;
+
 	DLINK_FOREACH(dl, servers.head)
 	{
 		srv = dl->data;

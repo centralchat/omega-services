@@ -90,27 +90,32 @@ void parser_handle_line(char *inbuf)
     // Link* li;
     // User* u;
 
-	const char *para[MAXPARA + 2];
+	const char *parv[MAXPARA + 2];
 
 	char *command = NULL;
-  char *s = NULL;
-	char *pos = NULL;
+  char *s       = NULL;
+	char *pos     = NULL;
 
-  int i;
-	int n = 0;
+	args_t * args;  
 
 
-	server_t * source; 
+  int i    = 0;
+  int cnt  = 0;
+	int parc = 0;
 
-	memset(para,0,sizeof(para));
+
+	void * source; 
+	int    source_type = 0;
+
+	memset(parv,0,sizeof(parv));
 
 	if ((!inbuf) || (*inbuf == '\0'))
 		return;
 
 	log_message(LOG_DEBUG2,"RECV: %s", inbuf);
 
-	for (n = 0; n < MAXPARA; n++)
-		para[n] = NULL;
+	for (cnt = 0; cnt < MAXPARA; cnt++)
+		parv[cnt] = NULL;
 
 	if ((pos = strchr (inbuf, ' ')))
 	{
@@ -120,7 +125,7 @@ void parser_handle_line(char *inbuf)
 		if (*inbuf == ':')
 		{
 			inbuf++;
-			para[0]	= inbuf;
+			parv[0]	= inbuf;
 
 			if ((s = strchr(pos, ' ')))
 			{
@@ -146,23 +151,33 @@ void parser_handle_line(char *inbuf)
 	}
 	
 	if (s)
-		n = parser_string_to_array (s, para);
+		parc = parser_string_to_array (s, parv);
 
 	/* assert for safety, if command is NULL abort */
 	s_assert(command != NULL);
 
-  for (i = 1; para[i] != NULL; i++)
-    log_message (LOG_DEBUG3, "para[%d]: %s", i, para[i]);
 
-	args_t * args = NULL;
-	if ((args = alloca(sizeof(args_t))))
+	//Dont go any further ignore NOTICE AUTH
+	if (parc > 2)
 	{
-		args->argv   = (char **)para;
-		args->argc   = n;
-		args->source = NULL;
+		if (((strcasecmp(command, "NOTICE")) == 0) && ((strcasecmp (parv[1], "AUTH")) == 0))
+			return;
 	}
 
-	if (!para[0])
+  for (i = 1; core.debug && parv[i] != NULL; i++)
+    log_message (LOG_DEBUG3, "para[%d]: %s", i, parv[i]);
+
+
+	if ((!parv[0]) || ((source = server_findby_name(parv[0]))))
+		source_type = 0;
+	else
+		source_type = 1;
+
+
+  ARGS(args, source, parc, parv);
+  if (source_type)
+  	/* Do nothing for now */ ;
+	else
 		command_server_emit (command, args);
 
 	// else
@@ -185,10 +200,10 @@ void parser_handle_line(char *inbuf)
 	// 	return;
 	// }
 	command = NULL;
-    s = NULL;
-	pos = NULL;
+        s = NULL;
+	    pos = NULL;
 
-	memset(para,0,sizeof(para));
+	memset(parv,0,sizeof(parv));
 
 	return;
 }

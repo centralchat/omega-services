@@ -49,6 +49,7 @@
 #include "command.h"
 #include "server.h"
 #include "uplink.h"
+#include "sendto.h"
 
 
 /* Soft asserts: This is borrowed from Ratbox/KC-IRCd */

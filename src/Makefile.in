@@ -31,6 +31,7 @@ SRCS  =                 \
   event.c               \
   logger.c              \
   socketengine.c        \
+  sendto.c              \
   sighandler.c          \
   socket.c              \
   uplink.c              \

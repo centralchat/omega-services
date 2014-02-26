@@ -81,8 +81,19 @@ typedef struct {
 } args_t;
 
 
-int debug;
+#define ARGS(arg_struct, src, ac, av) 		            \
+	(arg_struct) = NULL; 													      \
+	if (((arg_struct) = alloca(sizeof(args_t))))        \
+	{																						        \
+		if ((av))  (arg_struct)->argv   = (char **)(av);  \
+		else (arg_struct)->argv         = NULL;		  			\
+		if ((src)) (arg_struct)->source = (src);				  \
+		else (arg_struct)->source       = NULL;						\
+		(arg_struct)->argc   = (ac);						          \
+	}																						        \
+	(arg_struct)
 
+int debug;
 
 E int sync_state;
 E void core_exit          (int);

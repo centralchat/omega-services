@@ -196,25 +196,25 @@ static char _socket_getbyte (Socket *s)
 
 	if (data_in_buffer == 0)
 	{
-        memset (readbuf, '\0', sizeof(readbuf));
+    memset (readbuf, '\0', sizeof(readbuf));
 		n = read (s->sd, readbuf, MAXLEN);
 		if (n <= 0)
 		{
 			if (s->flags & SOCK_UPLINK)
 			{
-            	socket_remove(s);				
+        socket_remove(s);				
 				return '\0';
 			}
 			else
-			{
-                alog (LOG_ERROR, "Read error on %s: (%d) %s", s->name, n, strerror(errno));
-                socket_error_callback(s);               
+      {
+        alog (LOG_ERROR, "Read error on %s: (%d) %s", s->name, n, strerror(errno));
+        socket_error_callback(s);               
 				socket_remove(s);
 				return '\0';
 			}
 		}
 		readbuf[n] = '\0';
-        recvbytes += n;
+    recvbytes += n;
 		c = readbuf;
 		data_in_buffer = 1;
 	}

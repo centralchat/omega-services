@@ -31,6 +31,8 @@ typedef struct _server Link; //alias for some backward compat
 dlink_list servers;
 
 server_t * server_new();
+server_t * server_init(char *, char *, char *);
+
 void       server_free(server_t *);
 
 #define server_find server_findby_name
