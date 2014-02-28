@@ -83,8 +83,8 @@ char mod_err_msg[512];
   */
 
 #define API_MAJOR  0
-#define API_MINOR  6
-#define API_PATCH  7
+#define API_MINOR  9
+#define API_PATCH  0
 
 #define API_VERSION ((API_MAJOR * 1000) + (API_MINOR * 100))
 #define API_VERSION_FULL ((API_MAJOR * 1000) + (API_MINOR * 100) + API_PATCH)
@@ -117,22 +117,11 @@ char mod_err_msg[512];
   */
 
 
-
-#define MODREGISTER(name,version,author,abi,load,unload) \
-static module_info_t modinfo = {          \
-  name, version, author, abi, \
-  load, unload \
-} \
-
-
-// XXX - Deprecation (Name doesnt make sense, for clarity,
-// we want to put it at the buttom of the file)
 #define MODHEADER(name,version,author,abi,load,unload) \
-static module_info_t modinfo = {          \
+module_info_t ModInfo = {          \
   name, version, author, abi, \
   load, unload \
 } \
-
 
 
 /****
@@ -234,7 +223,7 @@ typedef struct module_ {
     int type;               //Module types
 
 
-    module_info_t *mi;
+    module_info_t * mi;
 
 } module_t;
 
@@ -275,18 +264,16 @@ int    _module_close (Module *);
 #define module_loaddir(x, y)  module_loaddir_ext((x), (y), MOD_TYPE_UNKNOWN)
 
 
-int		 module_loaddir_ext(char *, int, int);
+int		  module_loaddir_ext(char *, int, int);
 
 char *  mod_type_string(int); 
 char *  find_module_dir(char *module);
 char *  create_mod_temp(char *);
 
 
-/************************************************************/
-/**
- * Event Hooks
- */
-
+char * mod_type_string(int); 
+const char * mod_error(int);
+const char * mod_queue_prio_string(int);
 
 
 #endif /*__MODULE_H__*/

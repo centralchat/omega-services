@@ -32,11 +32,11 @@ E void se_cleanup ();
 E int  se_receive ();
 
 E void se_init         (void);
-E int  se_accept       (Socket *);
-E int  se_read         (Socket *);
-E int  se_unix_connect (Socket *, char *);
-E int  se_listen       (Socket *, char *, int);
-E int  se_connect      (Socket *, char *, char *, int);
+E int  se_accept       (socket_t *);
+E int  se_read         (socket_t *);
+E int  se_unix_connect (socket_t *, char *);
+E int  se_listen       (socket_t *, char *, int);
+E int  se_connect      (socket_t *, char *, char *, int);
 
 #ifdef HAVE_GETADDRINFO
 	struct addrinfo * gethostinfo(char const *, int);

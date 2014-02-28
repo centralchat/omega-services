@@ -80,7 +80,7 @@ int run_mod_que(int load)
           
         status = module_open(mq->name, mq->type);
 
-        log_message(LOG_MODULE,"Loading module %s [%s]",mq->name,GetModErr(status));
+        log_message(LOG_MODULE,"Loading module %s [%s]", mq->name, mod_error(status));
 
         // We have an unmet dependency, try to load it next time around. 
         // if we are on MOD_QUEUE_PRIO_POST then fail it completely.        
@@ -92,13 +92,13 @@ int run_mod_que(int load)
         break;
       case MOD_ACT_UNLOAD:
         status = module_close(mq->name);
-        alog(LOG_MODULE,"Unloading module %s [%s]",mq->name,GetModErr(status));
+        log_message(LOG_MODULE,"Unloading module %s [%s]",mq->name, mod_error(status));
         break;
       case MOD_ACT_RELOAD:
         if ((status = module_close(mq->name)) == 0)
           status = module_open(mq->name, mq->type);
               
-        alog(LOG_MODULE,"Reloading module %s [%s]",mq->name,GetModErr(status));
+        log_message(LOG_MODULE,"Reloading module %s [%s]",mq->name, mod_error(status));
         break;
     }
 freedl:

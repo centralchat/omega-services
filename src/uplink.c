@@ -42,7 +42,7 @@ int uplink_connect()
  * i think uplink should be a module, but wlil think about this
  * futher
  */
-void  uplink_read_callback(Socket * s)
+void  uplink_read_callback(socket_t * s)
 {
     char  *line = NULL;
   log_message(LOG_DEBUG3, "Calling uplink read.");

@@ -6,7 +6,7 @@
 /************************************************************/
 
 
-Socket * cli_sock;
+socket_t * cli_sock;
 
 
 /************************************************************/
@@ -24,6 +24,12 @@ int cli_create_socket(char * path);
 
 int cli_load()
 {
+  char path[255];
+  snprintf(path,sizeof(path), "%s/something.sock", DBDIR);
+
+  if (!cli_create_socket(path))
+    return MOD_ERR_IO;
+
   return MOD_ERR_OK;
 }
 
@@ -48,8 +54,8 @@ int cli_create_socket(char * path)
 
     log_message(LOG_INFO, "Creating cli socket on %s", path);
   
-    int ret = se_unix_connect(core.socket, path);
-    if (!socket_addto_list(core.socket))
+    int ret = se_unix_connect(cli_sock, path);
+    if (!socket_addto_list(cli_sock))
       return FALSE;
 
     return ret;
@@ -62,7 +68,7 @@ int cli_create_socket(char * path)
 /************************************************************/
 
 
-void cli_accept_callback(Socket * s)
+void cli_accept_callback(socket_t * s)
 {
   socket_write(s, "This is a test\n");
 }
@@ -72,7 +78,7 @@ void cli_accept_callback(Socket * s)
 /************************************************************/
 
 
-MODREGISTER("CLI", 
+MODHEADER("CLI", 
   "Omega Development",
   "0.0.1", 
   MAKE_ABI(0,9,0), 

@@ -29,16 +29,16 @@ char * module_paths[] = {
  */
 
 
-char * GetModErr(int status)
+const char * mod_error(int status)
 {
-
+  printf("%s\n", mod_err_msg);
 
   if (status <= 0)
   {
     switch (status)
     {
       case MOD_ERR_MSG:
-        return (char *) mod_err_msg;
+        return mod_err_msg;
     }
   }
 
@@ -67,9 +67,9 @@ char * GetModErr(int status)
   };
 
   if (ModErr[status])
-    return (char*)ModErr[status];
+    return ModErr[status];
   else
-    return (char*)"Module Warning, No return from MODULE";
+    return "Module Warning, No return from MODULE";
 
 }
 
@@ -107,6 +107,8 @@ const char * mod_queue_prio_string(int prio)
 }
 
 
+
+
 /*****************************************/
 
 
@@ -135,11 +137,11 @@ void modules_init()
 }
 
 /*******************************************************/
-/* module_loaddir - Load a directory of modules
+/* module_loaddir_ext - Load a directory of modules
  * mark them as type, if type is given
  */
 
-int __module_loaddir(char *dir, int order, int type) {
+int module_loaddir_ext(char *dir, int order, int type) {
   DIR *dp;
     
   struct dirent *ep;
@@ -407,14 +409,17 @@ int module_open(char *filename, int type)
 
     if (!(m->handle = dlopen(m->file, RTLD_NOW)))
     {
-            module_free(m);
-            throwModErr("%s",dlerror());
+      module_free(m);
+      throwModErr("%s",dlerror());
     }
-    if (!(m->mi = (ModuleInfo*) dlsym(m->handle,"ModInfo")))
+
+
+    if (!(m->mi = (module_info_t*) dlsym(m->handle, "ModInfo")))
     {
-            module_free(m);
+      printf("Cannot load module registery (%s)", dlerror());
+      module_free(m);
       dlclose(m->handle);
-            throwModErr("%s",dlerror());
+      throwModErr("%s",dlerror());
     }
 
    /*
@@ -425,19 +430,20 @@ int module_open(char *filename, int type)
     */
     mod_status = 0;
     if (m->mi->mod_register) {
-    if ((mod_status = m->mi->mod_register()) != MOD_ERR_OK) {
-      if (m->mi->mod_unregister) 
-        m->mi->mod_unregister();
-      module_free(m);
-      dlclose(m->handle);
-      return mod_status;    
-    }
+      if ((mod_status = m->mi->mod_register()) != MOD_ERR_OK) {
+        if (m->mi->mod_unregister) 
+          m->mi->mod_unregister();
+        module_free(m);
+        dlclose(m->handle);
+        return mod_status;    
+      }
+
     } else {
-        if (m->mi->mod_unregister)
-      m->mi->mod_unregister();
-    dlclose(m->handle);
-    module_free(m);
-    return MOD_ERR_API;
+      if (m->mi->mod_unregister)
+        m->mi->mod_unregister();
+      dlclose(m->handle);
+      module_free(m);
+      return MOD_ERR_API;
     }
     m->type = type;
     dl = dlink_create();
@@ -585,7 +591,7 @@ void modules_purge()
     if (module->type == MOD_TYPE_DB)
       continue;
         
-    __module_close(module); //result here is that the module is completely gone.
+    _module_close(module); //result here is that the module is completely gone.
                             //and remove from our list.
   }
   
@@ -596,7 +602,7 @@ void modules_purge()
   DLINK_FOREACH_SAFE (dl,tdl, modules.head)
   {
     module = dl->data;                
-    __module_close(module); 
+    _module_close(module); 
   }
 }
 

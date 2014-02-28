@@ -91,7 +91,7 @@ void del_se_fnct_startup(int  (*fnct)())
 
 
 #ifdef HAVE_GETADDRINFO
-int se_listen (Socket *s, char *address, int port) {
+int se_listen (socket_t *s, char *address, int port) {
   struct addrinfo     *hostres, *res;
   struct addrinfo     *bindres = NULL;
   int                 optval, flags;
@@ -139,7 +139,7 @@ int se_listen (Socket *s, char *address, int port) {
 
 #else
 
-int se_listen (Socket *s, char *address, int port) 
+int se_listen (socket_t *s, char *address, int port) 
 {
   int                 optval, flags;
   struct sockaddr_in  serv_addr;
@@ -219,7 +219,7 @@ struct addrinfo * gethostinfo(char const *host, int port)
 
 /************************************************************/
 
-int se_accept(Socket * s) 
+int se_accept(socket_t * s) 
 {
 	int sd;
 	struct sockaddr_in client_name;
@@ -234,7 +234,7 @@ int se_accept(Socket * s)
 
 /************************************************************/
 
-int _se_readsock(Socket * s)
+int _se_readsock(socket_t * s)
 {
 	if (!s) return -1;
 
@@ -253,7 +253,7 @@ int _se_readsock(Socket * s)
 #ifdef HAVE_GETADDRINFO
 struct addrinfo	* gethostinfo (char const *host, int port);
 
-int se_connect(Socket * s, char *server, char *vhost, int port)
+int se_connect(socket_t * s, char *server, char *vhost, int port)
 {
 	struct addrinfo	*hostres, *res;
 	struct addrinfo *bindres = NULL;
@@ -341,7 +341,7 @@ int se_connect(Socket * s, char *server, char *vhost, int port)
 }
 #else
 
-int se_connect(Socket* s, char *server, char *vhost, int port)
+int se_connect(socket_t* s, char *server, char *vhost, int port)
 {
 	struct hostent *he = NULL;
 	struct sockaddr_in my_sin;
@@ -350,7 +350,7 @@ int se_connect(Socket* s, char *server, char *vhost, int port)
 
 	if((s->sd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
 	{
-		perror("Unable to bind Socket\n");
+		perror("Unable to bind socket_t\n");
 		return -1;
 	}
 
@@ -400,7 +400,7 @@ int se_connect(Socket* s, char *server, char *vhost, int port)
 
 /************************************************************/
 
-int se_unix_connect(Socket * s, char * path)
+int se_unix_connect(socket_t * s, char * path)
 {
   int len = 0;
   struct sockaddr_un remote;

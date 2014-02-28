@@ -44,7 +44,7 @@ static void select_cleanup() {
 static void select_build_fdsets() 
 {
 	dlink_node *dl, *tdl;
-	Socket * s;
+	socket_t * s;
 
 	FD_ZERO(&wfdset);
 	FD_ZERO(&rfdset);
@@ -64,7 +64,7 @@ static void select_build_fdsets()
 		else if (socket_is_read(s))
 			FD_SET (s->sd, &rfdset);
 
-		alog(LOG_DEBUG3, "Socket is in: %s (Fd: %d)", socket_is_read(s) ? "Read" : "Write", s->sd);
+		alog(LOG_DEBUG3, "socket_t is in: %s (Fd: %d)", socket_is_read(s) ? "Read" : "Write", s->sd);
 	}
 }
 
@@ -72,9 +72,9 @@ static int select_receive(void) {
 	int	rc;
 	dlink_node *dl, *tdl;
 	struct timeval  timeout;
-	Socket * tmp_sock;
+	socket_t * tmp_sock;
 
-	Socket * s;
+	socket_t * s;
 
 	socket_purge_dead();
 

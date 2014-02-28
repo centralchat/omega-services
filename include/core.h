@@ -69,8 +69,8 @@ struct _core {
 		int  argc;
 	} cmdline;
 
-	Socket * console;
-	Socket * socket;
+	socket_t * console;
+	socket_t * socket;
 
 	server_t * uplink;
 	server_t * server;

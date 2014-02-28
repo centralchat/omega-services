@@ -2,7 +2,7 @@
 #include "appinclude.h"
 
 
-static char _socket_getbyte (Socket *s);
+static char _socket_getbyte (socket_t *s);
 
 /* Read Buffer */
 static char readbuf[MAXLEN + 1]; //NOT THREAD SAFE
@@ -16,12 +16,12 @@ void socket_empty_callback() { return; }
 
 
 //I say we require a descriptor prior to adding to the list.
-Socket * socket_new(int sd) 
+socket_t * socket_new(int sd) 
 {
 	dlink_node * dl = NULL;
-	Socket * tmp    = NULL;
+	socket_t * tmp    = NULL;
 
-	if (!(tmp = calloc(1,sizeof(Socket))))
+	if (!(tmp = calloc(1,sizeof(socket_t))))
 		return NULL;
 
 	tmp->flags = SOCKET_NEW;
@@ -36,7 +36,7 @@ Socket * socket_new(int sd)
 
 /************************************************************/
 
-void socket_free(Socket * s)
+void socket_free(socket_t * s)
 {
     MessageBuffer   *m;
     dlink_node *dl, *tdl;
@@ -61,21 +61,21 @@ void socket_free(Socket * s)
 
 /************************************************************/
 
-Socket * socket_find_by_sd(int sd)
+socket_t * socket_find_by_sd(int sd)
 {
 	return NULL;
 }
 
 /************************************************************/
 
-Socket * socket_find_by_name(char * name)
+socket_t * socket_find_by_name(char * name)
 {
 	return NULL;
 }
 
 /************************************************************/
 
-int socket_addto_list(Socket * s)
+int socket_addto_list(socket_t * s)
 {
 	
 	dlink_node * dl = NULL;
@@ -89,7 +89,7 @@ int socket_addto_list(Socket * s)
 
 /************************************************************/
 
-int socket_delfrom_list(Socket * s)
+int socket_delfrom_list(socket_t * s)
 {
 	dlink_node * dl = NULL;
 	log_message(LOG_DEBUG3, "Removing %p from socket list", s);
@@ -105,7 +105,7 @@ void socket_purge_all()
 {
 
 	dlink_node *dl, *tdl;
-	Socket * s; 
+	socket_t * s; 
 	int count = 0;
 
 	lock_object(sockets);
@@ -133,7 +133,7 @@ void socket_purge_dead()
 {
 
 	dlink_node *dl, *tdl;
-	Socket * s; 
+	socket_t * s; 
 	int count = 0;
 
 	lock_object(sockets);
@@ -155,7 +155,7 @@ void socket_purge_dead()
 
 /************************************************************/
 
-int socket_write(Socket * s, char * fmt, ...)
+int socket_write(socket_t * s, char * fmt, ...)
 {
   //TODO: Make this memory dynamic alloc
   int n = 0;
@@ -179,14 +179,14 @@ int socket_write(Socket * s, char * fmt, ...)
 /************************************************************/
 
 
-void socket_remove(Socket * s)
+void socket_remove(socket_t * s)
 {
 	s->flags = SOCK_DEAD;
 }
 
 /************************************************************/
 
-static char _socket_getbyte (Socket *s)
+static char _socket_getbyte (socket_t *s)
 {
 	static char		*c = readbuf;
     static int      buffercnt = 0;
@@ -233,7 +233,7 @@ static char _socket_getbyte (Socket *s)
 
 /************************************************************/
 
-int socket_read(Socket * s)
+int socket_read(socket_t * s)
 {
 	char			message[MAXLEN + 1];
 	int				i;
@@ -302,7 +302,7 @@ int socket_read(Socket * s)
 /************************************************************/
 
 
-char * socket_getline (Socket *s)
+char * socket_getline (socket_t *s)
 {
     dlink_node      *dl, *tdl;
     MessageBuffer   *m;
