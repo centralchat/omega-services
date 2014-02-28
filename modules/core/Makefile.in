@@ -12,15 +12,13 @@ INSTALL_DATA	= @INSTALL_DATA@
 
 coredir	= @coredir@
 
-#SRCS 	= m_fantasy.c \
+SRCS 	= m_cli.c
 #	m_version.c \
 #	m_whois.c \
 #	m_stats.c \
 #	m_info.c \
 #	m_ping.c \
 #	m_trace.c
-
-SRCS	=
 
 SH_OBJS	= ${SRCS:.c=.so}
 S_OBJS	= ${SRCS:.c=.o}

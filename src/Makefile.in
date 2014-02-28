@@ -24,6 +24,7 @@ SRCS  =                 \
   configparser.c        \
   dlink.c               \
   server.c              \
+  modque.c              \
   main.c                \
   database.c            \
   module.c              \

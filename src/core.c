@@ -86,14 +86,14 @@ void core_init()
     //Initialize our signal handler
     sighandler_init();
     event_init();
-    modules_init();
+
 
     atexit(core_cleanup);
 
     se_init();
     
-    mq_load_module("select", MOD_TYPE_SOCKET); //inject into modq
-    
+    mq_preload_module("select", MOD_TYPE_SOCKET); //inject into modq
+        
     modules_init(); // Run our modq to handle config load modules
                     // This will load all module orders, PRE -> STD -> POST
    
@@ -109,6 +109,13 @@ void core_run(void) {
 
     se_startup();
 
+    //Create us a server entry for our own self
+    core.server = server_init(core.settings.server.name, 
+      " ", core.settings.server.numeric);
+
+    if (!core.server)
+      core_exit(0);
+
     if (uplink_connect() < 0)
       core_exit(0);
     
@@ -120,7 +127,6 @@ void core_run(void) {
     //We are in a weird sync_state shutdown.
     core_exit(0); 
 }
-
 
 /*********************************************************/
 

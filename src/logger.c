@@ -101,12 +101,15 @@ void __attribute__((format(printf, 5, 0))) log_message
     case _LOG_DEBUG:
       if (core.debug < 1)
         return;
+      break;
     case _LOG_DEBUG2:
       if (core.debug < 2)
         return;
+      break;
     case _LOG_DEBUG3:
       if (core.debug < 3)
         return;
+      break;
     default:
       break;
   }

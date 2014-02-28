@@ -2,6 +2,9 @@
 #define ___SERVER_H___
 
 
+#define SRV_FLAG_UPLINK (1 << 0)
+
+
 typedef struct _server {
 
     time_t linktime; //time the link was created
@@ -18,11 +21,14 @@ typedef struct _server {
 
     int     eos; //have we got the EOS from this server?
 
-    time_t	lastpong;
+    int     flags; // Server flags
+    
+    time_t  lastpong;
 
     dlink_list leafs;
 
     struct _server *uplink;
+
 
 } server_t;
 

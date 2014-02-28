@@ -33,6 +33,7 @@ struct _core {
 	int debug;
 	int	nofork;
 	int generate_backtrace;
+	int skeleton;
 
 	dlink_list databases;
 
@@ -68,15 +69,24 @@ struct _core {
 		int  argc;
 	} cmdline;
 
+	Socket * console;
 	Socket * socket;
 
+	server_t * uplink;
+	server_t * server;
+	
 } core;
 
 
 typedef struct {
-	void *source;
+	union { 
+		server_t *server;
+		void     *ptr;
+	} source;
+
 	int  argc;
 	char **argv;
+
 	void *ptr; //used for passing random information to the method
 } args_t;
 
@@ -87,8 +97,8 @@ typedef struct {
 	{																						        \
 		if ((av))  (arg_struct)->argv   = (char **)(av);  \
 		else (arg_struct)->argv         = NULL;		  			\
-		if ((src)) (arg_struct)->source = (src);				  \
-		else (arg_struct)->source       = NULL;						\
+		if ((src)) (arg_struct)->source.ptr = (src);		  \
+		else (arg_struct)->source.ptr   = NULL;						\
 		(arg_struct)->argc   = (ac);						          \
 	}																						        \
 	(arg_struct)

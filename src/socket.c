@@ -168,7 +168,7 @@ int socket_write(Socket * s, char * fmt, ...)
   vsnprintf(message, sizeof(message), fmt, ap);
   
   //Console logging
-  log_message(LOG_DEBUG3, "%s\n", message);
+  log_message(LOG_DEBUG2, "SEND: %s", message);
 
   n = write(s->sd, &message, strlen(message));
   va_end(ap);

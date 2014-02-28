@@ -1,8 +1,6 @@
 #ifndef __APPINCLUDE_H__
 #define __APPINCLUDE_H__
 
-
-
 #define MAXHOST 255
 #define MAXPATH 255
 #define MAXFUNC 64
@@ -25,9 +23,6 @@
 #	define E 
 #endif
 
-
-
-
 #include "version.h"
 
 #include "dlink.h"
@@ -38,18 +33,20 @@
 #include "tools.h" 
 #include "thread.h"
 #include "module.h"
+#include "modque.h"
 #include "database.h"
 #include "config.h"
 #include "configparser.h"
 #include "socket.h"
-#include "core.h"
 #include "socketengine.h"
-#include "event.h"
 #include "parser.h"
-#include "command.h"
 #include "server.h"
 #include "uplink.h"
 #include "sendto.h"
+#include "core.h"
+#include "command.h"
+#include "protocol.h"
+#include "event.h"
 
 
 /* Soft asserts: This is borrowed from Ratbox/KC-IRCd */

@@ -78,6 +78,9 @@
 # include <gnutls/gnutls.h>
 #endif
 
+#include <sys/un.h>
+
+
 #ifndef va_copy
 # ifdef __va_copy
 #  define VA_COPY(DEST,SRC) __va_copy((DEST),(SRC))

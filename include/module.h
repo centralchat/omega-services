@@ -101,7 +101,7 @@ char mod_err_msg[512];
 #define MAKE_ABI(maj,min,patch) ((maj * 1000) + (min * 100) + patch)
 
 /**
-  *   Module Header
+  *   Module Register
   *   	This struct allows the core to pull in the necessary information
   *   	and place it into the module structure.
   *
@@ -116,15 +116,24 @@ char mod_err_msg[512];
   *
   */
 
-#define MODHEADER(name,version,author,abi,load,unload) \
-ModuleInfo ModInfo = {          \
-	name, version, author, abi, \
-	load, unload \
+
+
+#define MODREGISTER(name,version,author,abi,load,unload) \
+static module_info_t modinfo = {          \
+  name, version, author, abi, \
+  load, unload \
 } \
 
 
+// XXX - Deprecation (Name doesnt make sense, for clarity,
+// we want to put it at the buttom of the file)
+#define MODHEADER(name,version,author,abi,load,unload) \
+static module_info_t modinfo = {          \
+  name, version, author, abi, \
+  load, unload \
+} \
 
-int nomodules;
+
 
 /****
  * Necessary defines for systems without them
@@ -189,7 +198,8 @@ int nomodules;
  *
  */
 
-typedef struct moduleinfo_ {
+
+typedef struct module_info_t_ {
      char *name;        //name of module (Modules are allowed to specify there own name)
 
      char *version;     //Version information in a string - This has no impact on weather or
@@ -198,12 +208,11 @@ typedef struct moduleinfo_ {
 
      long api;          //BINARY INTERFACE version
 
-     int      (*mod_register)	(void);	    /* Register function;   */
+     int    (*mod_register)	(void);	    /* Register function;   */
 
-	 void	  (*mod_unregister)	(void);		/* Unregister function.	*/
+	   void	  (*mod_unregister)	(void);		/* Unregister function.	*/
 
-
-} ModuleInfo;
+} module_info_t;
 
 
 /**
@@ -217,30 +226,21 @@ typedef struct module_ {
 
     time_t age;            	//Time we were loaded
 
-	char name[MAXPATH]; 			 	//name of the module for the core purposes.
+	  char name[MAXPATH]; 			 	//name of the module for the core purposes.
     char *file;
 
     void* handle;
 
     int type;               //Module types
 
-    ModuleInfo *mi;
 
-} Module;
+    module_info_t *mi;
 
+} module_t;
 
-/***********************************/
-/**
- * Module Que Structures
- */
+// XXX- Deprecation
+#define Module module_t
 
-
-typedef struct moduleq_entry {
-	char name[256];
-	int action;
-	int load;
-  int type;
-} ModuleQEntry;
 
 /***********************************/
 /**
@@ -249,17 +249,15 @@ typedef struct moduleq_entry {
 
 
 dlink_list  modules;
-dlink_list moduleque;
 
-
-/***********************************/
+/************************************************************/
 
 
 int load_protocol();
 int load_modules();
 
 
-/*************************************/
+/************************************************************/
 
 void 	modules_init ();
 void 	modules_purge();
@@ -269,40 +267,22 @@ Module* module_find   (char *);
 int     module_exists (char *);
 void    module_free   (Module *);
 
-int 	  module_close  (char *);
-int    __module_close (Module *);
 
-int		  module_loaddir(char *, int);
+
+int 	  module_close  (char *);
+int    _module_close (Module *);
+
+#define module_loaddir(x, y)  module_loaddir_ext((x), (y), MOD_TYPE_UNKNOWN)
+
+
+int		 module_loaddir_ext(char *, int, int);
 
 char *  mod_type_string(int); 
-
-char *find_module_dir(char *module);
-char *create_mod_temp(char *);
-
-/************************************/
-/**
- * Module Que Functions
- */
-
-ModuleQEntry* find_mod_que(char *);
-
-int addto_mod_que_ext(char *, int, int, int);
-int run_mod_que(int);
-
-#define addto_mod_que(name, act, ord) \
-  addto_mod_que_ext((name), MOD_TYPE_UNKNOWN, (act), (ord))
-
-//Api to wrap the module que in a sensible mannor
-#define mq_load_module(name, type) \
-  addto_mod_que_ext(name, type, MOD_ACT_LOAD, MOD_QUEUE_PRIO_STD)
-#define mq_reload_module(name, type) \
-  addto_mod_que_ext(name, type, MOD_ACT_RELOAD, MOD_QUEUE_PRIO_STD)
-#define mq_reload_unmodule(name) \
-  addto_mod_que_ext(name, MOD_TYPE_UNKNOWN, MOD_ACT_UNLOAD, MOD_QUEUE_PRIO_STD)
+char *  find_module_dir(char *module);
+char *  create_mod_temp(char *);
 
 
-
-/************************************/
+/************************************************************/
 /**
  * Event Hooks
  */

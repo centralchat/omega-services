@@ -108,7 +108,7 @@ int _event_dispatch_timed()
 			}
 		}
 
-		log_message(LOG_EVENT, "Ran %d events in chain %s", cnt, ec->name);
+		log_message(LOG_EVENT, "Ran %d timed events in chain %s", cnt, ec->name);
 	}
 	thread_lock_obj(&eventlist, THREAD_MUTEX_UNLOCK);
 
@@ -152,7 +152,7 @@ int _event_add
 	if (!(evt = calloc(1, sizeof(event_t))))
 		return FALSE;
 
-	log_message(LOG_EVENT, "Adding event to chain: %s type: %s", 
+	log_message(LOG_DEBUG, "Adding event to chain: %s type: %s", 
 		name, event_type_string(type));
 
 	strlcpy(evt->file, file, sizeof(evt->file));
@@ -183,7 +183,7 @@ event_chain_t * event_chain_find_or_new(const char * name, int type)
 {
 	event_chain_t * ec = NULL;
 	if (!(ec = event_chain_find(name, type))) {
-		log_message(LOG_EVENT, "Event chain is empty creating event: %s type: %s", 
+		log_message(LOG_DEBUG2, "Event chain is empty creating event: %s type: %s", 
 			name, event_type_string(type));
 		ec = event_chain_new(name, type);		
 	}
@@ -213,7 +213,7 @@ event_chain_t * event_chain_new(const char * name, int type)
 	dl = dlink_create();
 	dlink_add_tail(ec, dl, &eventlist);
 
-	log_message(LOG_DEBUG3, "Creating event chain for %s", name);
+	log_message(LOG_DEBUG, "Creating event chain for %s", name);
 	return ec;
 }
 

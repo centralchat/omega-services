@@ -116,9 +116,13 @@ void modules_init()
      * Load modules, clients, and db's
      */
 
-  if (debug > 0)
+  if (core.debug > 0)
     log_message(LOG_DEBUG, "\nRequired Module API: %d.%d.x [\033[1;32m%d\033[0m]\n\n", 
       API_MAJOR, API_MINOR, API_VERSION);
+
+
+  module_loaddir_ext(MOD_CORE_PATH, MOD_QUEUE_PRIO_PRE, MOD_TYPE_CORE);
+
 
   // if (!load_modules())
   //  return;
@@ -131,7 +135,11 @@ void modules_init()
 }
 
 /*******************************************************/
-int module_loaddir(char *dir, int order) {
+/* module_loaddir - Load a directory of modules
+ * mark them as type, if type is given
+ */
+
+int __module_loaddir(char *dir, int order, int type) {
   DIR *dp;
     
   struct dirent *ep;
@@ -156,7 +164,7 @@ int module_loaddir(char *dir, int order) {
       continue;
 
     alog(LOG_DEBUG, "module_loaddir(): adding %s to modque (Priority: %d)", ep->d_name, order);
-    addto_mod_que(ep->d_name, MOD_ACT_LOAD, order);
+    addto_mod_que_ext(ep->d_name, type, MOD_ACT_LOAD, order);
 
   }
   (void) closedir (dp);
@@ -179,7 +187,8 @@ int load_modules()
   int order = 0;
 
   char *tmp, *start;
-        char m_tmp[512];  
+  char m_tmp[512];
+
   dlink_list *config_info;
   dlink_node *dl, *tdl;
   ConfBase *cb;
@@ -190,8 +199,8 @@ int load_modules()
 
   
 
-    module_loaddir("", MOD_QUEUE_PRIO_PRE);
-  if (nomodules) {
+  module_loaddir("", MOD_QUEUE_PRIO_PRE);
+  if (core.skeleton) {
     fprintf(stderr,"[\033[1;34mNote\033[0m] Services were started in skeleton mode. Non-core modules will not be loaded.\n");     
     return 1;     
   }
@@ -443,11 +452,10 @@ int module_open(char *filename, int type)
 
 /************************************************/
 
-
-int module_exists (char * fileName)
+int module_exists (char * file)
 {
   FILE *fp;   
-  if ((fp = fopen(fileName,"r"))) {
+  if ((fp = fopen(file,"r"))) {
     fclose(fp);
     return 1;
   } 
@@ -510,7 +518,7 @@ void module_free(Module *m)
  * TODO: Make this thread safe, check for locks
  */
 
-int __module_close(Module * module)
+int _module_close(Module * module)
 {  
   log_message(LOG_MODULE,"Trying to unload module: %s",module->name);
   if (module->mi->mod_unregister)
@@ -525,7 +533,6 @@ int __module_close(Module * module)
 
   module_free(module);
 
-
   return MOD_ERR_OK;
 }
 
@@ -536,8 +543,9 @@ int module_close(char *filename)
     Module* module;
     if (!(module = module_find(filename)))
         return MOD_ERR_NOFILE;
-   return __module_close(module);
+   return _module_close(module);
 }
+
 /*****************************************/
 
 Module * module_find(char *filename)
@@ -590,114 +598,6 @@ void modules_purge()
     module = dl->data;                
     __module_close(module); 
   }
-}
-
-/********************************************/
-/**
- **      Module Que Operations
- **
- **/
- 
-ModuleQEntry *find_mod_que(char *file)
-{
-  dlink_node *dl;
-  ModuleQEntry *mq;
-  
-  DLINK_FOREACH(dl,moduleque.head)
-  {
-      mq = dl->data;
-      if (strcasecmp(mq->name,file)==0)
-          return mq;
-  }
-  return NULL;
- }
-
- 
-int addto_mod_que_ext(char *file,int type, int act, int order)
-{
-
-  dlink_node *dl;
-  ModuleQEntry *mq;
-
-  if (!(mq = (ModuleQEntry*) malloc(sizeof(ModuleQEntry))))
-    return MOD_ERR_MEMORY;
-  
-  
-  strlcpy(mq->name,file,sizeof(mq->name));
-  
-  mq->type   = type;
-  mq->action = act;
-  mq->load   = order;
-  
-  dl = dlink_create();
-  dlink_add_tail(mq,dl,&moduleque);
-  return MOD_ERR_OK;
-}
-
-int run_mod_que(int load)
-{
-  dlink_node *dl,*tdl;
-  ModuleQEntry *mq;
-  int status;
-  
-  // Their is nothing to run
-  if (moduleque.count == 0)
-    return 1;
-
-  // thread_lock_obj(&moduleque, THREAD_MUTEX_FORCE_LOCK);
-  log_message(LOG_DEBUG3, "Running module queue [%s]", mod_queue_prio_string(load));
-  DLINK_FOREACH_SAFE(dl,tdl,moduleque.head)
-  {
-    mq = dl->data;
-    
-    if (!mq->name)
-      continue;
-      
-    switch (mq->action)
-    {
-      case MOD_ACT_LOAD:
-        if ((load == -1) || (mq->load != load) || (load == MOD_QUEUE_PRIO_NONE))
-            goto cont;
-            
-        if ((module_find(mq->name)))
-            break;
-          
-        status = module_open(mq->name, mq->type);
-
-        log_message(LOG_MODULE,"Loading module %s [%s]",mq->name,GetModErr(status));
-
-        // We have an unmet dependency, try to load it next time around. 
-        // if we are on MOD_QUEUE_PRIO_POST then fail it completely.        
-        if ((mq->load != MOD_QUEUE_PRIO_POST) && (status == MOD_ERR_DEPENDENCY)) {
-          mq->load += 1;
-          goto cont;
-        }
-        
-        break;
-      case MOD_ACT_UNLOAD:
-        status = module_close(mq->name);
-        alog(LOG_MODULE,"Unloading module %s [%s]",mq->name,GetModErr(status));
-        break;
-      case MOD_ACT_RELOAD:
-        if ((status = module_close(mq->name)) == 0)
-          status = module_open(mq->name, mq->type);
-              
-        alog(LOG_MODULE,"Reloading module %s [%s]",mq->name,GetModErr(status));
-        break;
-    }
-freedl:
-    dlink_delete(dl,&moduleque);
-    dlink_free(dl);
-      
-    if (mq)
-      free(mq);
-cont:
-    continue;
-  }
-
-  // thread_lock_obj(&moduleque, THREAD_MUTEX_UNLOCK); 
-
-  return 1;
 }
 
 /********************************************/

@@ -11,9 +11,9 @@
 #define SOCK_READ		    0x00000020
 #define SOCK_NOREAD		  0x00000040
 #define SOCK_DEAD		    0x00000080
+#define SOCK_UNIX       0x00000100
 
-
-#define SOCK_CLUSTER	  0x00000100 //Reserve for when we do clustering
+#define SOCK_CLUSTER	  0x00000200 //Reserve for when we do clustering
 
 
 #define socket_is_connecting(s) ((s)->flags & SOCK_CONNECTING)
@@ -61,27 +61,35 @@ typedef struct socket_
  
 	unsigned int buffer_len;
 	char	buffer[MAXLEN + 1];	
-
 	char	name[512];
+
+	char  path[MAXPATH];
 
 	struct  sockaddr_in	*sa;   
 
 	dlink_list	msg_buffer;
+
 	//Callbacks
-	void	(*read_callback)  (struct socket_ *);
-	void	(*write_callback) (void *);
-    void    (*error_callback) (struct socket_ *);
+	void	(*read_callback)    (struct socket_ *);
+  void  (*error_callback)   (struct socket_ *);
 
-} Socket;
+	void	(*write_callback)   (struct socket_ *);
+	void  (*accept_callback)  (struct socket_ *);
+	void  (*close_callback)   (struct socket_ *);
+
+} socket_t;
+
+//XXX- Deprecation
+#define Socket socket_t
 
 
-E Socket * socket_new       ();
-E int      socket_listen    (Socket *);
-E void     socket_dead      (Socket *);
-E void     socket_free      (Socket *);
-E void     socket_remove    (Socket *);
-E int      socket_write     (Socket *, char *, ...);
-E int      socket_read      (Socket * );
+E socket_t * socket_new       ();
+E int        socket_listen    (socket_t *);
+E void       socket_dead      (socket_t *);
+E void       socket_free      (socket_t *);
+E void       socket_remove    (socket_t *);
+E int        socket_write     (socket_t *, char *, ...);
+E int        socket_read      (socket_t * );
 
 E void socket_empty_callback(void);
 
@@ -92,13 +100,17 @@ E void socket_empty_callback(void);
  */
 
 
-#define socket_read_callback(s)     (s)->read_callback  ? (s)->read_callback((s))    : socket_empty_callback()
-#define socket_write_callback(s)    (s)->write_callback ? (s)->write_callback((s))   : socket_empty_callback()
-#define socket_error_callback(s)    (s)->write_callback ? (s)->error_callback((s))   : socket_empty_callback()
+#define socket_read_callback(s)    (s)->read_callback   ? (s)->read_callback((s))   : socket_empty_callback()
+#define socket_write_callback(s)   (s)->write_callback  ? (s)->write_callback((s))  : socket_empty_callback()
+#define socket_error_callback(s)   (s)->error_callback  ? (s)->error_callback((s))  : socket_empty_callback()
+#define socket_accept_callback(s)  (s)->accept_callback ? (s)->accept_callback((s)) : socket_empty_callback()
+#define socket_close_callback(s)   (s)->close_callback  ? (s)->close_callback((s))  : socket_empty_callback()
 
-#define  socket_set_read_callback(s, fnct)  (s)->read_callback  = fnct
-#define socket_set_write_callback(s, fnct)  (s)->write_callback = fnct
-#define socket_set_error_callback(s, fnct)	(s)->error_callback = fnct
+#define  socket_set_read_callback  (s, fnct)  (s)->read_callback   = fnct
+#define socket_set_write_callback  (s, fnct)  (s)->write_callback  = fnct
+#define socket_set_error_callback  (s, fnct)	(s)->error_callback  = fnct
+#define socket_set_accept_callback (s, fnct)  (s)->accept_callback = fnct
+#define socket_set_close_callback  (s, fnct)  (s)->close_callback  = fnct
 
 
 #define socket_set_callbacks(s, read, write, error) \
@@ -115,13 +127,13 @@ E void socket_empty_callback(void);
 
 #define socket_find socket_find_sd
 
-int      socket_delfrom_list (Socket *);
-int      socket_addto_list   (Socket *);
-Socket * socket_find_by_sd   (int);
-Socket * socket_find_by_name (char * name);
-void     socket_purge_all    (void);
-void     socket_purge_dead   (void);
-char   * socket_getline      (Socket *s);
+int        socket_delfrom_list (socket_t *);
+int        socket_addto_list   (socket_t *);
+socket_t * socket_find_by_sd   (int);
+socket_t * socket_find_by_name (char * name);
+void       socket_purge_all    (void);
+void       socket_purge_dead   (void);
+char     * socket_getline      (socket_t *s);
 
 dlink_list sockets;
 

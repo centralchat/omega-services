@@ -78,7 +78,7 @@ void del_se_fnct_startup(int  (*fnct)())
 
  void se_init(void)
  {
- 	sockets.head = NULL;
+  sockets.head = NULL;
  	sockets.tail = NULL;
  }
 
@@ -92,95 +92,95 @@ void del_se_fnct_startup(int  (*fnct)())
 
 #ifdef HAVE_GETADDRINFO
 int se_listen (Socket *s, char *address, int port) {
-    struct addrinfo     *hostres, *res;
-    struct addrinfo     *bindres = NULL;
-    int                 optval, flags;
+  struct addrinfo     *hostres, *res;
+  struct addrinfo     *bindres = NULL;
+  int                 optval, flags;
 
-    hostres     = gethostinfo (address, port);
+  hostres     = gethostinfo (address, port);
 
-    if (hostres == NULL) {
-        alog (LOG_ERROR, "Lookup failure for hostname %s", address);
-        return -1;
+  if (hostres == NULL) {
+    log_message (LOG_ERROR, "Lookup failure for hostname %s", address);
+    return -1;
+  }
+
+  for (res = hostres; res != NULL; res = res->ai_next) {
+    s->sd   = socket (res->ai_family, res->ai_socktype, res->ai_protocol);
+
+    if (s->sd < 0)
+      continue;
+
+    optval  = 1;
+    setsockopt (s->sd, SOL_SOCKET, SO_REUSEADDR, (char *)&optval, sizeof(optval));
+
+    if ((bind (s->sd, res->ai_addr, res->ai_addrlen)) != 0) {
+      log_message (LOG_ERROR, "Unable to bind to %s: %s", address, strerror(errno));
+      s->sd   = -1;
+      return -1;
     }
 
-    for (res = hostres; res != NULL; res = res->ai_next) {
-        s->sd   = socket (res->ai_family, res->ai_socktype, res->ai_protocol);
-
-        if (s->sd < 0)
-            continue;
-
-        optval  = 1;
-        setsockopt (s->sd, SOL_SOCKET, SO_REUSEADDR, (char *)&optval, sizeof(optval));
-
-        if ((bind (s->sd, res->ai_addr, res->ai_addrlen)) != 0) {
-            alog (LOG_ERROR, "Unable to bind to %s: %s", address, strerror(errno));
-            s->sd   = -1;
-            return -1;
-        }
-
-        if ((listen (s->sd, 5)) != 0) {
-            alog (LOG_ERROR, "Unable to listen on %s: %s", address, strerror(errno));
-            close (s->sd);
-            s->sd   = -1;
-            return -1;
-        }
-
-        if (s->sd > max_sockets)
-            max_sockets  = s->sd;
-
-        s->flags    |= SOCK_LISTEN|SOCK_READ;
-        break;
+    if ((listen (s->sd, 5)) != 0) {
+      log_message (LOG_ERROR, "Unable to listen on %s: %s", address, strerror(errno));
+      close (s->sd);
+      s->sd   = -1;
+      return -1;
     }
 
-    freeaddrinfo (hostres);
-    log_message(LOG_SOCKET, "Listening on %s:%d", address, port);
-    return s->sd;
+    if (s->sd > max_sockets)
+      max_sockets  = s->sd;
+
+    s->flags    |= SOCK_LISTEN|SOCK_READ;
+    break;
+  }
+
+  freeaddrinfo (hostres);
+  log_message(LOG_SOCKET, "Listening on %s:%d", address, port);
+  return s->sd;
 }
 
 #else
 
 int se_listen (Socket *s, char *address, int port) 
 {
-    int                 optval, flags;
-    struct sockaddr_in  serv_addr;
-    struct hostent      *bind_addr;
+  int                 optval, flags;
+  struct sockaddr_in  serv_addr;
+  struct hostent      *bind_addr;
 
-    bind_addr   = gethostbyname (address);
+  bind_addr   = gethostbyname (address);
 
-    if (bind_addr == NULL) 
-    {
-        alog (LOG_ERROR, "Unable to get info for address: %s", address);
-        return -1;
-    }
+  if (bind_addr == NULL) 
+  {
+      log_message (LOG_ERROR, "Unable to get info for address: %s", address);
+      return -1;
+  }
 
-    if ((s->sd = socket (AF_INET, SOCK_STREAM, 0)) < 0) 
-    {
-        alog (LOG_ERROR, "Unable to create socket: %s", strerror(errno));
-        return -1;
-    }
+  if ((s->sd = socket (AF_INET, SOCK_STREAM, 0)) < 0) 
+  {
+      log_message (LOG_ERROR, "Unable to create socket: %s", strerror(errno));
+      return -1;
+  }
 
-    bzero ((char *) &serv_addr, sizeof(serv_addr));
-    serv_addr.sin_family    = AF_INET;
-    serv_addr.sin_port      = htons(port);
-    bcopy ((char *) bind_addr->h_addr, (char *) &serv_addr.sin_addr.s_addr, bind_addr->h_length);
+  bzero ((char *) &serv_addr, sizeof(serv_addr));
+  serv_addr.sin_family    = AF_INET;
+  serv_addr.sin_port      = htons(port);
+  bcopy ((char *) bind_addr->h_addr, (char *) &serv_addr.sin_addr.s_addr, bind_addr->h_length);
 
-    optval  = 1;
-    setsockopt (s->sd, SOL_SOCKET, SO_REUSEADDR, (char *) &optval, sizeof(optval));
+  optval  = 1;
+  setsockopt (s->sd, SOL_SOCKET, SO_REUSEADDR, (char *) &optval, sizeof(optval));
 
-    if (bind (s->sd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-        alog (LOG_ERROR, "Unable to bind to address %s: %s", address, strerror(errno));
-        close (s->sd);
-        return -1;
-    }
+  if (bind (s->sd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
+      log_message (LOG_ERROR, "Unable to bind to address %s: %s", address, strerror(errno));
+      close (s->sd);
+      return -1;
+  }
 
-    if (listen (s->sd, 5) < 0) {
-        alog (LOG_ERROR, "Unable to listen on socket: %s", strerror(errno));
-        return -1;
-    }
+  if (listen (s->sd, 5) < 0) {
+      log_message (LOG_ERROR, "Unable to listen on socket: %s", strerror(errno));
+      return -1;
+  }
 
-    s->flags    |= SOCK_LISTEN|SOCK_READ;
-    log_message(LOG_SOCKET, "Listening on %s:%d", address, port);
-    return s->sd;
+  s->flags    |= SOCK_LISTEN|SOCK_READ;
+  log_message(LOG_SOCKET, "Listening on %s:%d", address, port);
+  return s->sd;
 }
 
 #endif
@@ -200,9 +200,11 @@ struct addrinfo * gethostinfo(char const *host, int port)
   char portbuf[6];
 
   memset(&hints, 0, sizeof(hints));
-  hints.ai_flags = 0;
-  hints.ai_family = AF_UNSPEC;
+  
+  hints.ai_flags    = 0;
+  hints.ai_family   = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
+
   snprintf(portbuf, 6, "%d", port);
   error = getaddrinfo(host, portbuf, &hints, &res);
   if (error)
@@ -257,13 +259,13 @@ int se_connect(Socket * s, char *server, char *vhost, int port)
 	struct addrinfo *bindres = NULL;
 	int optval, flags, ret;
 
-    s->sd   = -1;
+  s->sd   = -1;
 
 	hostres		= gethostinfo (server, port);
 	if (hostres == NULL)
 	{
 		log_message(LOG_ERROR,"Lookup failure for hostname %s", server);
-        return 0;
+    return 0;
 	}
 
 	if (*vhost != '\0')
@@ -272,7 +274,7 @@ int se_connect(Socket * s, char *server, char *vhost, int port)
 		if (bindres == NULL)
 		{
 			log_message(LOG_ERROR,"Connection Failed! (Lookup failure for vhost %s)", vhost);
-            return 0;
+      return 0;
 		}
 	}
 
@@ -311,9 +313,10 @@ int se_connect(Socket * s, char *server, char *vhost, int port)
 			{
 				log_message(LOG_ERROR, "Connect Failed! (%s)\n", strerror(errno));
 				s->sd	= -1;
-    			return -1;
+  			return -1;
 			}
 		}
+
 		if (s->sd > max_sockets)
 			max_sockets	= s->sd;
 
@@ -323,9 +326,9 @@ int se_connect(Socket * s, char *server, char *vhost, int port)
 		}
 		else 
 		{
-            if (!(s->flags & SOCK_READ) || !(s->flags & SOCK_WRITE))
-			    s->flags |= SOCK_READ;
-        }
+      if (!(s->flags & SOCK_READ) || !(s->flags & SOCK_WRITE))
+		    s->flags |= SOCK_READ;
+    }
 		break;
 	}
 
@@ -373,10 +376,10 @@ int se_connect(Socket* s, char *server, char *vhost, int port)
 		}
 	}
 
-	he = gethostbyname(CfgSettings.uplink);
+	he = gethostbyname(core.local_ip);
 	if (!he)
 	{
-		printf ("Invalid Address\n");
+		log_message(LOG_ERROR, "Invalid Address");
 		return -1;
 	}
 
@@ -387,10 +390,37 @@ int se_connect(Socket* s, char *server, char *vhost, int port)
 
 	if(connect(s->sd, (struct sockaddr *)&my_sin, sizeof(struct sockaddr)) == -1)
 	{
-		perror("Connect\n");
-		exit(1);
+		log_message(LOG_ERROR, "Unable to connect ");
+		return -1;
 	}
 	return s->sd;
 }
 
 #endif
+
+/************************************************************/
+
+int se_unix_connect(Socket * s, char * path)
+{
+  int len = 0;
+  struct sockaddr_un remote;
+
+  if ((s->sd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+    log_message(LOG_ERROR, "Unable to create unix socket");
+    return FALSE;
+  }
+
+  remote.sun_family = AF_UNIX;
+  strncpy(remote.sun_path, path, sizeof(remote.sun_path));
+
+  len = strlen(remote.sun_path) + sizeof(remote.sun_family);
+  if (connect(s->sd, (struct sockaddr *)&remote, len) == -1) {
+    log_message(LOG_ERROR, "Unable to create unix socket: %s", path);
+    return FALSE;
+  }
+
+  strncpy(s->path, path, sizeof(s->path));
+  s->flags = SOCK_UNIX | SOCK_READ;
+
+  return s->sd;
+}

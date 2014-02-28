@@ -30,21 +30,22 @@ void log_message(int level, const char *file, int line, const char *function, co
 #define _LOG_DATABASE 11
 #define _LOG_SOCKET   12
 #define _LOG_EVENT    13
+#define _LOG_SE_DEBUG 14
 
-#define LOG_INFO     _LOG_INFO    , _A_
-#define LOG_WARNING  _LOG_WARNING , _A_
-#define LOG_NOTICE   _LOG_NOTICE  , _A_
-#define LOG_ERROR    _LOG_ERROR   , _A_
-#define LOG_CRITICAL _LOG_CRITICAL, _A_
-#define LOG_FATAL    _LOG_FATAL   , _A_
-#define LOG_DEBUG    _LOG_DEBUG   , _A_
-#define LOG_DEBUG2   _LOG_DEBUG2  , _A_
-#define LOG_DEBUG3   _LOG_DEBUG3  , _A_
-#define LOG_MODULE   _LOG_MODULE  , _A_
-#define LOG_CONFIG   _LOG_CONFIG  , _A_
-#define LOG_DATABASE _LOG_DATABASE, _A_
-#define LOG_SOCKET   _LOG_SOCKET  , _A_
-#define LOG_EVENT    _LOG_EVENT   , _A_
+#define LOG_INFO          _LOG_INFO    , _A_
+#define LOG_WARNING       _LOG_WARNING , _A_
+#define LOG_NOTICE        _LOG_NOTICE  , _A_
+#define LOG_ERROR         _LOG_ERROR   , _A_
+#define LOG_CRITICAL      _LOG_CRITICAL, _A_
+#define LOG_FATAL         _LOG_FATAL   , _A_
+#define LOG_DEBUG         _LOG_DEBUG   , _A_
+#define LOG_DEBUG2        _LOG_DEBUG2  , _A_
+#define LOG_DEBUG3        _LOG_DEBUG3  , _A_
+#define LOG_MODULE        _LOG_MODULE  , _A_
+#define LOG_CONFIG        _LOG_CONFIG  , _A_
+#define LOG_DATABASE      _LOG_DATABASE, _A_
+#define LOG_SOCKET        _LOG_SOCKET  , _A_
+#define LOG_EVENT         _LOG_EVENT   , _A_
 
 
 E int  log_open();

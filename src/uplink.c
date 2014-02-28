@@ -44,24 +44,34 @@ int uplink_connect()
  */
 void  uplink_read_callback(Socket * s)
 {
-    char	*line = NULL;
-	log_message(LOG_DEBUG3, "Calling uplink read.");
+    char  *line = NULL;
+  log_message(LOG_DEBUG3, "Calling uplink read.");
 
 
-	while (1)
-	{
-		log_message(LOG_DEBUG3, "Calling uplink read.");
-		if (!(line = socket_getline(s)))
-			break;
-			
-		parser_handle_line(line);
-		free(line);
-		line = NULL;
-	}
+  while (1)
+  {
+    log_message(LOG_DEBUG3, "Calling uplink read.");
+    if (!(line = socket_getline(s)))
+      break;
+      
+    parser_handle_line(line);
+    free(line);
+    line = NULL;
+  }
 }
 
 
 /*********************************************************/
+
+
+void uplink_set(server_t * s)
+{
+  if (!s) return;
+  core.uplink = s;
+  s->flags |= SRV_FLAG_UPLINK;
+
+  log_message(LOG_DEBUG2, "Uplink has been set to %s", s->name);
+}
 
 
 /*********************************************************/

@@ -4,23 +4,22 @@
 int eos;
 int nlinks;
 
-static char *umodes[128] = {
-  "r",   // Registered Nickname
-  "o",   // IRC Operator
-  "i",   // Invisible
-  "w",   // Wallops
-  "z",   // Using a secure connection
-  "B",   // Is a bot
-  "S",   // Is a network service
-  "x",   // Has a cloaked host
-  "v",   // Has a virtual host
-  "p",   // Private
-  "A",   // Server Administrator
-  "V",   // Web TV
-  "H",    // Hidden Oper
-  NULL
-};
-
+// static char *umodes[128] = {
+//   "r",   // Registered Nickname
+//   "o",   // IRC Operator
+//   "i",   // Invisible
+//   "w",   // Wallops
+//   "z",   // Using a secure connection
+//   "B",   // Is a bot
+//   "S",   // Is a network service
+//   "x",   // Has a cloaked host
+//   "v",   // Has a virtual host
+//   "p",   // Private
+//   "A",   // Server Administrator
+//   "V",   // Web TV
+//   "H",    // Hidden Oper
+//   NULL
+// };
 
 /*****************************************/
 
@@ -34,23 +33,21 @@ static char *umodes[128] = {
 
 /********************************************************************/
 
-int  module_init();
-void module_deint();
+int  module_init   ();
+void module_deinit ();
 
 void unreal32_negotiate(void);
 
-event_return_t unreal32_evt_update(args_t *);
+event_return_t unreal32_evt_uplink(args_t *);
 int            unreal32_cmd_server(args_t *);
 int            unreal32_cmd_ping  (args_t *);
 
-
-
-MODHEADER(NAME, VERSION, AUTHOR, MAKE_ABI(0,9,0),module_init, module_deint);
+MODHEADER(NAME, VERSION, AUTHOR, MAKE_ABI(0,9,0),module_init, module_deinit);
 
 int module_init()
 {
 
-  event_add("UPLINK", unreal32_evt_update);
+  event_add("UPLINK", unreal32_evt_uplink);
 
   command_server_add("SERVER", unreal32_cmd_server);
   command_server_add("PING"  , unreal32_cmd_ping);
@@ -58,14 +55,15 @@ int module_init()
 	return MOD_ERR_OK;
 }
 
-void module_deint()
+void module_deinit()
 {
 
 }
 
-
 /********************************************************************/
 /*                         Server Commands                          */
+/********************************************************************/
+
 /********************************************************************/
 /* Handle inbound SERVER command
  * 
@@ -81,8 +79,12 @@ int unreal32_cmd_server(args_t * args)
   server_t * s    = NULL;
   args_t   * arg  = NULL;
 
+
   if (!(s = server_init(args->argv[1], " ", args->argv[2])))
     return FALSE;
+
+  if (!args->argv[0])
+    uplink_set(s);
 
   ARGS(arg, s, 0, NULL);
   event_dispatch("SERVER", arg);
@@ -90,21 +92,22 @@ int unreal32_cmd_server(args_t * args)
   return TRUE;
 }
 
-
-
+/**********************************************************************/
+/* Handle inbound PING command
+ */ 
 int unreal32_cmd_ping(args_t * args)
 {
-  sendto_uplink("%s %s :PONG",core.settings.server.name, args->source);
+  sendto_uplink("%s %s :PONG",core.settings.server.name, args->source.server);
+  return TRUE;
 }
-
-
 
 
 /********************************************************************/
 /*                        EVENT HANDLEING                           */
 /********************************************************************/
 
-event_return_t unreal32_evt_update(args_t * args)
+/********************************************************************/
+event_return_t unreal32_evt_uplink(args_t * args)
 {
   unreal32_negotiate();
   return EVENT_SUCCESS;
@@ -115,12 +118,14 @@ event_return_t unreal32_evt_update(args_t * args)
 /*                       Internal Functions                         */
 /********************************************************************/
 
+/********************************************************************/
 
 void unreal32_negotiate()
 {
   sendto_uplink("PROTOCTL NICKv2 NICKIP SJOIN2 SJOIN VHP SJ3 NOQUIT TKLEXT VL");
   sendto_uplink("PASS :%s", core.settings.link.pass);
   sendto_uplink("SERVER %s %d :U0-*-%s Omega",core.settings.server.name, 1, core.settings.server.numeric);
+
   event_dispatch("CONNECT", NULL);
 }
 

@@ -167,11 +167,14 @@ void parser_handle_line(char *inbuf)
   for (i = 1; core.debug && parv[i] != NULL; i++)
     log_message (LOG_DEBUG3, "para[%d]: %s", i, parv[i]);
 
-
-	if ((!parv[0]) || ((source = server_findby_name(parv[0]))))
-		source_type = 0;
-	else
+  source_type = 0;
+	if (!parv[0]) {
+		source      = core.uplink;
+	} else if ((source = server_findby_name(parv[0]))) {
+		/* Do nothing */ ;
+	} else {
 		source_type = 1;
+	}
 
 
   ARGS(args, source, parc, parv);
