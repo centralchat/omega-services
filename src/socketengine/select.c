@@ -91,6 +91,7 @@ static int select_receive(void) {
 		DLINK_FOREACH_SAFE (dl, tdl, sockets.head)
 		{
 			s = dl->data;
+		
 			if (FD_ISSET (s->sd, &rfdset))
 			{	
 				if (!socket_is_listen(s))

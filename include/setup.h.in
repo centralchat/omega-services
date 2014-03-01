@@ -9,6 +9,9 @@
 /* Prefix where core modules are installed. */
 #undef CORE_DIR
 
+/* Prefix for runtime variable storage */
+#undef VAR_DIR
+
 /* Prefix where databases are saved. */
 #undef DBDIR
 

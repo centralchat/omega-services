@@ -25,10 +25,10 @@ int cli_create_socket(char * path);
 int cli_load()
 {
   char path[255];
-  snprintf(path,sizeof(path), "%s/something.sock", DBDIR);
+  snprintf(path,sizeof(path), "%s/something.sock", RUN_DIR);
 
-  if (!cli_create_socket(path))
-    return MOD_ERR_IO;
+  // if (!cli_create_socket(path))
+  //   return MOD_ERR_IO;
 
   return MOD_ERR_OK;
 }

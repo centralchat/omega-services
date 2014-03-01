@@ -20,7 +20,7 @@
 #define socket_is_read(s)  ((s)->flags & SOCK_READ)
 #define socket_is_write(s) ((s)->flags & SOCK_WRITE)
 #define socket_is_listen(s) ((s)->flags & SOCK_LISTEN)
-#define socket_is_dead(s)  ((s)->flags & SOCK_DEAD)
+#define socket_is_dead(s)  (((s)->flags & SOCK_DEAD) || ((s)->sd == -1))
 
 #define socket_is_fdset(s, set) FD_ISSET ((s)->sd, &(set))
 #define socket_fdset(s, set) FD_SET ((s)->sd, &(set))

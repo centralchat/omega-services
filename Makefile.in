@@ -6,7 +6,8 @@ confdir	    = @confdir@
 logdir		= @logdir@
 datarootdir	= @datarootdir@
 coredir     = @coredir@
-dbdir		= @dbdir@
+dbdir		    = @dbdir@
+vardir      = @vardir@
 RM	        = @RM@
 BASH        = @BASH@
 
@@ -87,9 +88,14 @@ install-mkdirs:
 	-@if test ! -d $(DESTDIR)$(prefix)/var/tmp; then \
 		mkdir $(DESTDIR)$(prefix)/var/tmp; \
 	fi
-
+	-@if test ! -d $(DESTDIR)$(vardir); then \
+		mkdir $(DESTDIR)$(vardir); \
+	fi
 	-@if test ! -d $(DESTDIR)$(dbdir); then \
 		mkdir $(DESTDIR)$(dbdir); \
+	fi	
+	-@if test ! -d $(DESTDIR)$(vardir)/run; then \
+		mkdir $(DESTDIR)$(vardir)/run; \
 	fi
 
 install: build install-mkdirs

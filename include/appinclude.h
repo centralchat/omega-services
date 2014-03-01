@@ -19,6 +19,9 @@
 
 #define _A_ __FILE__, __LINE__, __PRETTY_FUNCTION__
 
+#define RUN_DIR VAR_DIR "/run/"
+
+
 #ifndef E 
 #	define E 
 #endif

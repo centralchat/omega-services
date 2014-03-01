@@ -404,23 +404,36 @@ int se_unix_connect(socket_t * s, char * path)
 {
   int len = 0;
   struct sockaddr_un remote;
+  memset(&remote, 0, sizeof(remote));
 
   if ((s->sd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+    perror("Connect");
     log_message(LOG_ERROR, "Unable to create unix socket");
     return FALSE;
   }
 
   remote.sun_family = AF_UNIX;
-  strncpy(remote.sun_path, path, sizeof(remote.sun_path));
+  strcpy(remote.sun_path, path);
+
 
   len = strlen(remote.sun_path) + sizeof(remote.sun_family);
-  if (connect(s->sd, (struct sockaddr *)&remote, len) == -1) {
-    log_message(LOG_ERROR, "Unable to create unix socket: %s", path);
-    return FALSE;
+  
+  if (bind(s->sd, (struct sockaddr*)(&remote), len) != 0)
+  {
+      log_message (LOG_ERROR, "Unable to bind to %s: %s", path, strerror(errno));
+      s->sd   = -1;
+      return FALSE;
   }
-
+  
   strncpy(s->path, path, sizeof(s->path));
   s->flags = SOCK_UNIX | SOCK_READ;
+
+  if ((listen (s->sd, 5)) != 0) 
+  {
+    log_message (LOG_ERROR, "Unable to listen on socket: %s (%s)", path, strerror(errno));
+    close (s->sd);
+    s->sd   = -1;
+  }
 
   return s->sd;
 }
