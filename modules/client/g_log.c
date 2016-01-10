@@ -115,7 +115,7 @@ static int evn_glogrehash(int ac, void *nil) {
 static int evh_glogkick(int ac, void *echan) {
 	evh_channel *echannel = echan;
 	if (logchannels)
-		sendto_logchan("\002Kick:\002 %s has joined channel %s (%s)", echannel->u->nick, echannel->c->name, echannel->message);
+		sendto_logchan("\002Kick:\002 %s has been kicked from channel %s (%s)", echannel->u->nick, echannel->c->name, echannel->message);
 	return EVENT_CONT;
 }
 
